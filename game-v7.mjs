@@ -61,7 +61,7 @@ function closeModal(){if(closing)return;closing=true;const cb=modalCloseAction;m
 $('close-modal').onclick=closeModal;$('modal').addEventListener('cancel',e=>{e.preventDefault();closeModal();});
 function dialogue(idOrLines,onEnd){
  const id=typeof idOrLines==='string'?idOrLines:null;
- const lines=id?DIALOGUES[id]:idOrLines;
+ const lines=id?(id==='friend2'&&!s.discovered.includes('grapes')?DIALOGUES.friend2BeforeGrapes:DIALOGUES[id]):idOrLines;
  if(!Array.isArray(lines)||!lines.length){onEnd?.();return;}
  let page=0,advancing=false,finished=false;
  const finish=()=>{
@@ -128,7 +128,7 @@ function frame(time){if(!document.hidden){try{music?.tick();}catch{}}const dt=la
 requestAnimationFrame(frame);
 document.addEventListener('visibilitychange',()=>{lastFrame=0;if(document.hidden){save();audio?.suspend().catch(()=>{});}else if(s.settings.sound)audio?.resume().catch(()=>{});});
 window.addEventListener('pagehide',()=>{save();audio?.suspend().catch(()=>{});});
-$('talk').onclick=()=>{if(phase!=='idle')return;const id=availableStory(s);if(id)dialogue(id);else{lastChat=(lastChat+1)%SMALLTALK.length;dialogue(SMALLTALK[lastChat]);}};
+$('talk').onclick=()=>{if(phase!=='idle')return;const id=availableStory(s);if(id)dialogue(id);else{const chats=SMALLTALK.filter((_,i)=>i!==3||s.discovered.includes('grapes'));lastChat=(lastChat+1)%chats.length;dialogue(chats[lastChat]);}};
 function shopAction(fn,message){try{const result=fn();save();render();effect('coin');toast(typeof message==='function'?message(result):message);showShop();}catch(error){toast(error.message);}}
 function showShop(){
  if(phase!=='idle')return;
