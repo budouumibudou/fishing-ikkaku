@@ -1,9 +1,9 @@
-import {setupVoyage,SEA_SPRITES} from './voyage.mjs';
-import {Soundtrack,musicScene} from './music.mjs';
-import {SPRITES} from './sprites.mjs';
-import {setupPortAction} from './action.mjs';
-import {ITEMS,BY_ID,FRIENDS,DIALOGUES,SMALLTALK} from './data.mjs';
-import {STORAGE_KEY,fresh,hydrate,availableStory,readStory,successWidth,beginCast,completeCast,resolveBlackBream,sell,sellAll,buy} from './core.mjs';
+import {setupVoyage,SEA_SPRITES} from './voyage.mjs?v=0.4.1';
+import {Soundtrack,musicScene} from './music.mjs?v=0.4.1';
+import {SPRITES} from './sprites.mjs?v=0.4.1';
+import {setupPortAction} from './action.mjs?v=0.4.1';
+import {ITEMS,BY_ID,FRIENDS,DIALOGUES,SMALLTALK} from './data.mjs?v=0.4.1';
+import {STORAGE_KEY,fresh,hydrate,availableStory,readStory,successWidth,beginCast,completeCast,resolveBlackBream,sell,sellAll,buy} from './core.mjs?v=0.4.1';
 const $=id=>document.getElementById(id);
 let s=fresh(),storageOk=true;
 try{const raw=localStorage.getItem(STORAGE_KEY);if(raw)s=hydrate(JSON.parse(raw));}catch{storageOk=false;}
@@ -168,7 +168,7 @@ function frame(time){if(!document.hidden){try{music?.tick();}catch{}}const dt=la
  else if(phase==='black'&&elapsed>=2&&currentBlack){const result=currentBlack;currentBlack=null;showBlackDialogue(result);}
  }requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
-document.addEventListener('visibilitychange',()=>{lastFrame=0;if(document.hidden){save();audio?.suspend().catch(()=>{});}else if(s.settings.sound)audio?.resume().catch(()=>{});});
+document.addEventListener('visibilitychange',()=>{lastFrame=0;if(document.hidden){save();audio?.suspend().catch(()=>{});}else if(s.settings.sound&&document.documentElement.classList.contains('game-ready'))audio?.resume().catch(()=>{});});
 window.addEventListener('pagehide',()=>{save();audio?.suspend().catch(()=>{});});
 $('talk').onclick=()=>{if(phase!=='idle')return;const id=availableStory(s);if(id)dialogue(id);else{const chats=SMALLTALK.filter((_,i)=>i!==3||s.discovered.includes('grapes'));lastChat=(lastChat+1)%chats.length;dialogue(chats[lastChat]);}};
 function shopAction(fn,message){try{const result=fn();save();render();effect('coin');toast(typeof message==='function'?message(result):message);showShop();}catch(error){toast(error.message);}}
@@ -201,7 +201,8 @@ const portAction=setupPortAction({
 });
 $('port').onclick=()=>{if(phase!=='idle')return;setPhase('action');portAction.open();};
 const voyage=setupVoyage({getState:()=>s,modal:openModal,dialogue,commit:()=>{save();render();},close:()=>{modalCloseAction=null;$('modal').close();},ending:showEndingIntro,toast});
-$('voyage').onclick=()=>{if(phase==='idle')voyage.menu();};
+$('voyage').onclick=()=>{if(phase!=='idle'){toast('今の釣りを終えてから受付へ進もう。');return;}try{voyage.menu();}catch(error){console.error('Voyage menu failed',error);toast('受付を開けませんでした。ページを再読み込みしてください。');}};
+window.addEventListener('game-maintenance',()=>{save();portAction.close();modalCloseAction=null;if($('modal').open)$('modal').close();phase='idle';elapsed=0;currentBlack=null;$('black-event').hidden=true;$('ending').hidden=true;active=false;$('title-screen').hidden=false;music?.mute();audio?.suspend().catch(()=>{});});
 function showSettings(){if(phase!=='idle')return;openModal('釣り場の設定',`<div class="setting-row"><label for="set-sound">音を鳴らす<small>場面に合わせたBGM・波の音・効果音。</small></label><input id="set-sound" type="checkbox" ${s.settings.sound?'checked':''}></div><div class="setting-row"><label for="set-slow">ゆっくり釣り<small>合わせる時間を長く、目印をゆっくりに。釣果の確率は変わりません。</small></label><input id="set-slow" type="checkbox" ${s.settings.slow?'checked':''}></div><div class="setting-row"><label for="set-motion">水面の動き<small>ウキの揺れなどを表示します。</small></label><input id="set-motion" type="checkbox" ${s.settings.motion?'checked':''}></div><p class="modal-desc">「釣る」→ ウキが沈んだら「今！」→ 緑の帯で「引き上げる」。最初の3投は練習で、失敗しません。中央の金色で引くとセンタービタです。<br><br>記録はこのブラウザに保存されます。別の端末とは共有されません。</p><button id="reset-ask" class="small-btn danger">記録を消して、はじめから</button>`);
  $('set-sound').onchange=soundToggle;$('set-slow').onchange=e=>{s.settings.slow=e.target.checked;save();render();};$('set-motion').onchange=e=>{s.settings.motion=e.target.checked;save();render();};
  $('reset-ask').onclick=()=>{openModal('記録を消しますか？','<p class="modal-desc">所持金・図鑑・会話の記録がすべて消えます。この操作は元に戻せません。</p><div class="row-buttons"><button id="reset-no" class="small-btn">やめる</button><button id="reset-yes" class="small-btn danger">消してはじめから</button></div>');$('reset-no').onclick=showSettings;$('reset-yes').onclick=()=>{s=fresh();save();music?.mute();audio?.suspend().catch(()=>{});closeModal();active=false;phase='idle';$('title-screen').hidden=false;$('start').textContent='釣り場へ';render();};};
@@ -214,7 +215,7 @@ function status(){return {phase,money:s.money,castCount:s.castCount,friendship:F
 if(document.modelContext?.registerTool){try{Promise.resolve(document.modelContext.registerTool({name:'get_fishing_status',title:'釣りの記録を見る',description:'現在の所持金、釣果、交流段階、クリア状況を読み取ります。釣りや売却は実行しません。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute(input){if(input&&Object.keys(input).length)throw Error('入力は空のオブジェクトにしてください。');return status();}})).catch(()=>{});}catch{}}
 try{assets();}catch(error){
  console.error('Fishing startup failed',startupStep,error);
- const detail='v0.4 / '+startupStep+' / '+(error?.name||'Error')+': '+(error?.message||String(error));
+ const detail='v0.4.1 / '+startupStep+' / '+(error?.name||'Error')+': '+(error?.message||String(error));
  $('startup-error').textContent=detail;$('startup-error').hidden=false;
  $('start').disabled=false;$('start').textContent='読み込みをやり直す';$('start').onclick=()=>location.reload();
  log(detail);

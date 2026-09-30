@@ -1,4 +1,4 @@
-import {ITEMS,BY_ID} from './data.mjs';
+import {ITEMS,BY_ID} from './data.mjs?v=0.4.1';
 export const STORAGE_KEY='fishing-ikkaku-v1';
 export function fresh(){return {schemaVersion:1,voyageVersion:1,location:'harbor',seaCasts:0,seaIntroRead:false,license:false,boat:false,seaEnding:false,money:50,baitCount:0,rodLevel:0,inventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
 export function hydrate(raw){
