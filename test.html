@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#082f42"><meta name="description" content="ヒトデ、フグ、ときどきキノコ。隣のおじさんと一獲千金を目指す、のんびりシュールな釣りゲーム。"><title>テスト版 · フィッシング ～一獲千金～</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23082f42'/%3E%3Cpath d='M16 4v24' stroke='%23fff3ce' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%23fff3ce'/%3E%3Cpath d='M7 16a9 9 0 0118 0' fill='%23e86b42'/%3E%3C/svg%3E"><link rel="stylesheet" href="style.css?v=0.4.1"><style>html:not(.game-ready) body>:not(#maintenance-screen):not(script):not(style){visibility:hidden!important;pointer-events:none!important}#maintenance-screen{position:fixed;inset:0;z-index:99999;background:radial-gradient(ellipse at top,#16576c,#062333 75%);color:#f1e9cf;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:sans-serif}#maintenance-screen[hidden]{display:none}#maintenance-screen .maintenance-card{max-width:520px;border:1px solid #769ca4;border-radius:20px;padding:36px 24px;background:#082e40}#maintenance-screen h1{font-size:28px;color:#ffe4a0;margin:18px 0}#maintenance-screen p{line-height:1.9;margin:15px 0}#maintenance-screen button{background:#f4d785;color:#082f42;border:0;border-radius:8px;padding:14px 24px;font-weight:bold;font-size:16px;cursor:pointer}#maintenance-screen small{color:#a6c1c6}</style></head>
+<body><aside id="preview-badge" style="position:fixed;top:0;left:0;right:0;z-index:80;text-align:center;background:#e5bb69;color:#163746;padding:5px;font:700 12px sans-serif;pointer-events:none">テストプレイ中 · 記録は本番と別に保存</aside><section id="maintenance-screen" aria-live="polite"><div class="maintenance-card"><small>フィッシング ～一獲千金～</small><h1 id="maintenance-title">テスト版を準備しています</h1><p id="maintenance-message">少しお待ちください。</p><button type="button" id="maintenance-reload">再読み込み</button><p><small>セーブデータはこのブラウザに残ります。</small></p><noscript>ゲームを遊ぶにはJavaScriptを有効にしてください。</noscript></div></section>
+<main class="game">
+<header class="topbar"><a class="brand" href="#" id="home" aria-label="タイトルへ">フィッシング <span>〜一獲千金〜</span></a><div class="toptools"><span id="money" class="money">50 <small>G</small></span><button id="sound" class="iconbtn" aria-label="音をオンにする" title="音">♪</button><button id="settings" class="iconbtn" aria-label="設定">⚙</button></div></header>
+<div class="gamebody">
+<section class="seaside" aria-label="釣り場">
+<div class="scene" id="scene">
+<img class="harbor" src="harbor.png" alt="穏やかな海と、木の桟橋がある釣り場" fetchpriority="high">
+<div class="sea-boat" aria-hidden="true"><span>🛟 救命胴衣 着用中</span><div class="boat-hull"></div><div class="lifejacket"></div></div><div class="scene-top"><span class="location">波止場の昼下がり</span><span class="day" id="casts">0 投目</span></div>
+<img id="neighbor" class="actor neighbor" alt="隣のおじさん" hidden><img id="player" class="actor player" alt="あなた" hidden>
+<svg class="fishing-line" viewBox="0 0 1000 667" aria-hidden="true"><path d="M354 260 Q440 208 557 241" fill="none" stroke="#6b431e" stroke-width="4"/><path id="line" d="M557 241 Q580 340 665 388" fill="none" stroke="#edf4d9" stroke-width="1.3" opacity=".8"/></svg>
+<img id="bobber" class="bobber" alt="ウキ" hidden><div id="ripple" class="ripple"></div>
+<div class="scene-caption" id="caption">今日も、何かが釣れる。</div>
+<div class="black-event" id="black-event" hidden><p>…………</p><img id="black-fish" alt="威圧する黒鯛"><strong>すみません。全部、返します。</strong></div>
+</div>
+<div class="log-strip"><span class="dot"></span><span id="log" role="status" aria-live="polite">釣り場へようこそ。</span></div>
+</section>
+<section class="console">
+<div class="goal"><div><span class="eyebrow" id="goal-eyebrow">今日のねらい</span><h1 id="goal-title">いつか、謎の金塊。</h1></div><span class="goal-icon" aria-hidden="true">✦</span></div>
+<div class="playbox">
+<div class="play-info"><span id="phase-label">のんびり、糸を垂らそう。</span><span id="tutorial-badge" class="badge">練習 1 / 3</span></div>
+<div class="meter" id="meter" hidden><div id="safe-zone" class="safe-zone"></div><div class="crit-zone" aria-hidden="true"></div><span id="needle" class="needle"></span><span class="meter-label">金色ならセンタービタ</span></div>
+<button id="fish" class="fish-btn" disabled>準備中…</button>
+<div class="bait-row"><label for="bait">餌</label><select id="bait"><option value="base">基本の餌 · 無料</option><option id="rare-bait-option" value="rare">珍味の餌 · 0個</option></select><span id="rod-label">初心者の竿</span></div>
+</div>
+<nav class="actions" aria-label="釣り場のメニュー"><button id="talk"><span class="nav-icon">•••</span><span>話す</span><i id="talk-dot" hidden></i></button><button id="shop"><span class="nav-icon">⇄</span><span>売る・買う</span><i id="gold-dot" hidden></i></button><button id="book"><span class="nav-icon">▤</span><span>図鑑 <small id="book-count">0/8</small></span></button><button id="port"><span class="nav-icon">拳</span><span>港の街</span></button></nav><button id="voyage" type="button" disabled class="small-btn voyage-entry">船の受付</button>
+<div class="friend"><div><span>隣のおじさん</span><strong id="friend-label">顔見知り</strong></div><div class="friend-track"><span id="friend-fill"></span></div><p id="friend-hint">まずは、挨拶してみよう。</p></div>
+<div class="pocket"><div><span>手元の釣果</span><strong id="pocket-value">0 G</strong></div><p id="pocket-list">まだ空っぽ。最初の一投を。</p></div>
+<footer><span>釣れたら、こまめに売ろう。</span><span id="save-note">この端末に自動保存</span></footer>
+</section>
+</div>
+</main>
+<section id="title-screen" class="title-screen"><div class="title-sky"></div><div class="title-content"><p class="title-kicker">ヒトデ、フグ、ときどきキノコ。</p><h2>フィッシング</h2><p class="title-sub">〜 一獲千金 〜</p><div class="title-start"><button id="start" class="fish-btn" disabled>釣り場を準備しています…</button><p>タップで釣る、小さな海の物語。</p><button type="button" id="title-sound" class="small-btn">♪ 音楽をオンにする</button><p id="startup-error" class="startup-error" hidden role="alert"></p></div></div><span class="title-foot">音は設定からオンにできます · テスト版 v0.4.1 · 記録は本番と別</span></section>
+<section id="port-action" class="port-action" hidden aria-label="港の街・横スクロールアクション"><div class="port-shell"><div class="port-head"><div><small>港の街 · 試作ステージ</small><h2>釣り場への帰り道</h2></div><button type="button" id="port-close" class="iconbtn" aria-label="港の街を出る">×</button></div><p id="port-status" role="status">← → 移動、ジャンプで避けて、パンチで進もう。</p><div class="port-canvas-wrap"><canvas id="port-canvas" width="960" height="360" aria-label="港の横スクロールステージ"></canvas><div id="port-result" class="port-result" hidden><p id="port-result-text"></p><div class="row-buttons"><button type="button" id="port-retry" class="small-btn gold">もう一度</button><button type="button" id="port-exit" class="small-btn">釣り場へ戻る</button></div></div></div><div class="port-controls" aria-label="アクション操作"><button type="button" id="port-left" aria-label="左へ移動">◀</button><button type="button" id="port-right" aria-label="右へ移動">▶</button><button type="button" id="port-jump">ジャンプ</button><button type="button" id="port-punch">パンチ</button></div><p class="port-help">PC：← → または A D で移動、↑ または W でジャンプ、スペースまたは J でパンチ。</p></div></section>
+<dialog id="modal"><div class="modal-head"><h2 id="modal-title"></h2><button id="close-modal" class="iconbtn" aria-label="閉じる">×</button></div><div id="modal-body"></div></dialog>
+<section id="ending" class="ending" hidden><div class="ending-main"><img id="ending-fish" alt="不思議な魚の横顔"><p>こんな げーむに まじに<br>なっちゃって どうするの</p></div><div class="ending-actions"><small>海の試練、達成。</small><button id="end-back" class="fish-btn">釣り場にもどる</button><button id="end-title" class="text-button">タイトルへ</button></div></section>
+<div id="toast" class="toast" role="status" hidden></div>
+<script type="module" src="test-boot.mjs?v=0.4.1-test1"></script>
+</body></html>
