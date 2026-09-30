@@ -1,5 +1,6 @@
 // Original miniature scores. One context, bounded look-ahead and disposable voices.
 const scores={
+ sea:{bpm:92,chords:[[53,57,60],[55,59,62],[57,60,64],[55,60,64]],melody:[[65,0,69,72,0,69,0,0],[67,0,71,74,0,71,0,0],[69,0,72,76,0,72,69,0],[67,0,72,0,64,0,0,0]]},
  opening:{bpm:100,chords:[[60,64,67],[57,60,64],[53,57,60],[55,59,62]],melody:[[72,0,76,79,0,76,74,0],[72,0,69,72,76,0,0,0],[77,0,76,72,0,69,72,0],[74,0,71,67,72,0,0,0]]},
  harbor:{bpm:78,chords:[[60,64,67],[60,64,69],[57,60,65],[55,59,62],[57,60,64],[53,57,60],[55,60,64],[55,59,62]],melody:[[76,0,0,74,72,0,67,0],[69,0,72,0,76,0,0,0],[77,0,76,0,72,0,69,0],[71,0,74,0,0,0,0,0],[72,0,76,0,79,0,76,0],[77,0,0,76,72,0,69,0],[67,0,72,0,76,0,74,0],[71,0,0,69,67,0,0,0]]},
  tension:{bpm:148,chords:[[57,60,64],[53,57,60],[55,59,62],[52,56,59]],melody:[[76,81,76,79,76,81,83,81],[77,81,77,79,77,81,84,81],[79,83,79,81,79,83,86,83],[80,83,80,83,86,83,80,76]]},
@@ -7,7 +8,7 @@ const scores={
  ending:{bpm:88,chords:[[60,64,67],[55,59,62],[57,60,64],[53,57,60],[60,64,67],[53,57,60],[55,59,62],[60,64,67]],melody:[[72,0,76,0,79,0,84,0],[83,0,79,0,74,0,0,0],[81,0,79,76,72,0,76,0],[77,0,0,76,72,0,0,0],[76,0,79,0,84,0,83,0],[81,0,77,0,76,0,72,0],[74,0,76,0,74,0,71,0],[72,0,0,0,0,0,0,0]]},
  black:{bpm:90,chords:[[45,48,51],[44,47,50]],melody:[[57,0,0,56,0,0,51,0],[56,0,0,51,0,0,0,0]]}
 };
-export function musicScene(active,phase,ending){return ending?'ending':!active?'opening':['bite','reeling'].includes(phase)?'tension':phase==='black'?'black':phase==='action'?'street':'harbor';}
+export function musicScene(active,phase,ending,location='harbor'){return ending?'ending':!active?'opening':['bite','reeling'].includes(phase)?'tension':phase==='black'?'black':phase==='action'?'street':location==='sea'?'sea':'harbor';}
 export class Soundtrack{
  constructor(context){this.ctx=context;this.enabled=false;this.scene='';this.step=0;this.next=0;this.bus=null;this.voices=new Set();}
  note(midi,time,length,volume,bus,type='sine'){
