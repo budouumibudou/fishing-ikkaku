@@ -1,17 +1,18 @@
 import {ITEMS,BY_ID} from './data.mjs';
 export const STORAGE_KEY='fishing-ikkaku-v1';
-export function fresh(){return {schemaVersion:1,money:50,baitCount:0,rodLevel:0,inventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,pendingCast:null,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
+export function fresh(){return {schemaVersion:1,money:50,baitCount:0,rodLevel:0,inventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
 export function hydrate(raw){
  const s=fresh();if(!raw||raw.schemaVersion!==1)return s;
- for(const key of ['money','baitCount','rodLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','starStreak','maxStarStreak'])if(Number.isSafeInteger(raw[key])&&raw[key]>=0)s[key]=raw[key];
+ for(const key of ['money','baitCount','rodLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','starStreak','maxStarStreak'])if(Number.isSafeInteger(raw[key])&&raw[key]>=0)s[key]=raw[key];
  s.rodLevel=Math.min(2,s.rodLevel);s.friendStage=Math.min(3,s.friendStage);
  for(const key of ['inventory','catchCounts'])for(const item of ITEMS)if(Number.isSafeInteger(raw[key]?.[item.id])&&raw[key][item.id]>=0)s[key][item.id]=raw[key][item.id];
  s.inventory.black_bream=0;
  for(const key of ['discovered','readDialogueIds','pendingDialogueIds'])if(Array.isArray(raw[key]))s[key]=[...new Set(raw[key].filter(x=>typeof x==='string'))];
- for(const key of ['cleared','endingPending','goldRecoveryMode'])s[key]=raw[key]===true;
+ for(const key of ['cleared','endingPending','goldRecoveryMode','portCleared'])s[key]=raw[key]===true;
  for(const key of ['sound','slow','motion'])if(typeof raw.settings?.[key]==='boolean')s.settings[key]=raw.settings[key];
  s.settings.bait=raw.settings?.bait==='rare'?'rare':'base';
  if(raw.pendingCast&&BY_ID[raw.pendingCast.id])s.pendingCast={id:raw.pendingCast.id,safe:raw.pendingCast.safe===true,eligible:raw.pendingCast.eligible===true};
+ if(raw.pendingBlack&&typeof raw.pendingBlack==='object')s.pendingBlack={kind:'black',critical:raw.pendingBlack.critical===true};
  return s;
 }
 export function queue(s,id){if(!s.readDialogueIds.includes(id)&&!s.pendingDialogueIds.includes(id))s.pendingDialogueIds.push(id);}
@@ -37,7 +38,7 @@ export function beginCast(s,rng=Math.random){
  if(s.settings.bait==='rare'&&s.baitCount>0)s.baitCount--;
  s.pendingCast={id,safe,eligible};return s.pendingCast;
 }
-export function completeCast(s,success){
+export function completeCast(s,success,critical=false){
  const cast=s.pendingCast;if(!cast)return null;
  s.pendingCast=null;s.castCount++;s.blackBreamCooldown=Math.max(0,s.blackBreamCooldown-1);
  if(cast.eligible)s.goldPityCount++;
@@ -45,16 +46,31 @@ export function completeCast(s,success){
  const id=cast.id;const first=!s.discovered.includes(id);
  if(first){s.discovered.push(id);queue(s,id);}
  s.catchCounts[id]=(s.catchCounts[id]||0)+1;
+ if(critical)s.criticalCount++;
  s.starStreak=id==='starfish'?s.starStreak+1:0;s.maxStarStreak=Math.max(s.maxStarStreak,s.starStreak);
  if(id==='black_bream'){
-  const lost=Object.entries(s.inventory).filter(([,n])=>n>0);const gold=(s.inventory.gold||0)>0;
-  s.inventory={};s.blackBreamCooldown=3;
-  if(gold&&!s.cleared){s.goldRecoveryMode=true;s.goldPityCount=0;s.readDialogueIds=s.readDialogueIds.filter(x=>x!=='recovery');queue(s,'recovery');}
-  return {kind:'black',lost,first,gold};
+  s.blackBreamCooldown=3;
+  s.pendingBlack={kind:'black',critical};
+  return {...s.pendingBlack,first};
  }
  s.inventory[id]=(s.inventory[id]||0)+1;
  if(id==='gold'){s.goldPityCount=0;s.goldRecoveryMode=false;}
- return {kind:'catch',id,first};
+ const bonus=critical?5:0;
+ s.money+=bonus;
+ return {kind:'catch',id,first,critical,bonus};
+}
+export function resolveBlackBream(s,choice){
+ if(!['release','peace','anger'].includes(choice))throw Error('選択肢がありません。');
+ if(!s.pendingBlack)throw Error('黒鯛はもう海へ戻りました。');
+ s.pendingBlack=null;
+ const lost=choice==='release'?Object.entries(s.inventory).filter(([,n])=>n>0):[];
+ const gold=lost.some(([id])=>id==='gold');
+ if(choice==='release'){
+  s.inventory={};
+  if(gold&&!s.cleared){s.goldRecoveryMode=true;s.goldPityCount=0;s.readDialogueIds=s.readDialogueIds.filter(x=>x!=='recovery');queue(s,'recovery');}
+ }
+ if(choice==='anger')s.rodLevel=Math.max(0,s.rodLevel-1);
+ return {kind:'black',resolution:choice,lost,gold};
 }
 export function sell(s,id,qty=1){
  if(s.pendingCast)throw Error('釣りが終わってから売ろう。');
