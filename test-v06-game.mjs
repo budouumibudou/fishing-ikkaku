@@ -84,6 +84,7 @@ function updateStoryNotice(){
  const bubble=$('story-bubble'),notice=$('story-notice');
  bubble.hidden=!(story&&shore&&ready);notice.hidden=!(story&&active);notice.disabled=!ready;
  $('talk').classList.toggle('has-news',!!story&&shore);
+ if(!story){$('story-notice-title').textContent='';$('story-notice-detail').textContent='';return;}
  $('story-notice-title').textContent=shore?'おじさんから、新しい話':'帰港したら、おじさんに話しかけよう';
  $('story-notice-detail').textContent=shore?(story.startsWith('friend')?'仲良くなる話が届きました · タップして聞く':'まだ聞いていない話があります · タップして聞く'):'話は残してあります · タップで帰港の受付へ';
  if(story&&ready&&!$('modal').open&&$('ending').hidden){
@@ -286,7 +287,7 @@ function status(){return {phase,money:s.money,castCount:s.castCount,friendship:F
 if(document.modelContext?.registerTool){try{Promise.resolve(document.modelContext.registerTool({name:'get_fishing_status',title:'釣りの記録を見る',description:'現在の所持金、釣果、交流段階、クリア状況を読み取ります。釣りや売却は実行しません。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute(input){if(input&&Object.keys(input).length)throw Error('入力は空のオブジェクトにしてください。');return status();}})).catch(()=>{});}catch{}}
 try{assets();}catch(error){
  console.error('Fishing startup failed',startupStep,error);
- const detail='v0.6.0-test1 / '+startupStep+' / '+(error?.name||'Error')+': '+(error?.message||String(error));
+ const detail='v0.6.1-test1 / '+startupStep+' / '+(error?.name||'Error')+': '+(error?.message||String(error));
  $('startup-error').textContent=detail;$('startup-error').hidden=false;
  $('start').disabled=false;$('start').textContent='読み込みをやり直す';$('start').onclick=()=>location.reload();
  log(detail);
