@@ -79,7 +79,7 @@ dialog{max-height:88dvh;overscroll-behavior:contain} .title-screen{padding-botto
 @media(max-width:850px) and (orientation:portrait){.port-canvas-wrap canvas{object-fit:contain;height:270px;width:100%;min-height:270px}}
 .at-sea .fishing-line{display:block!important}.at-sea #rod-path{display:none}.at-sea .bobber{left:72.2%;top:59%;width:1.8%;height:7%}.at-sea .ripple{left:71.6%;top:64.5%;width:3%}
 
-/* v0.6.4: separate true ending and rolling credits */
+/* v0.7.0: separate true ending and rolling credits */
 .true-ending{position:fixed;inset:0;z-index:120;overflow:hidden;background:#061523;color:#fff6df;isolation:isolate;text-align:center;padding:calc(24px + var(--top-safe)) max(12px,env(safe-area-inset-right)) calc(14px + var(--bottom-safe)) max(12px,env(safe-area-inset-left))}
 .true-ending-art,.true-ending-shade{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .true-ending-art{object-fit:cover;image-rendering:pixelated}
@@ -99,3 +99,5 @@ dialog{max-height:88dvh;overscroll-behavior:contain} .title-screen{padding-botto
 @media (orientation:landscape) and (max-height:600px){.true-ending-head{top:calc(26px + var(--top-safe))}.true-ending-head h2{font-size:21px;margin:0}.true-credits-window{top:18%;height:64%}.true-credits-track p{margin-bottom:35px}.true-ending-controls{bottom:calc(8px + var(--bottom-safe))}.true-ending-controls button{min-height:40px}}
 @media (prefers-reduced-motion:reduce){.true-credits-window{overflow:auto;mask-image:none;-webkit-mask-image:none}.true-credits-track{position:relative;top:auto;animation:none!important}}
 body.reduce-motion .true-credits-window{overflow:auto;mask-image:none;-webkit-mask-image:none}body.reduce-motion .true-credits-track{position:relative;top:auto;animation:none!important}
+
+.challenge-meter{position:relative;height:42px;background:#071f2d;border:2px solid #8baeb5;margin:24px 0;overflow:hidden}.challenge-safe{position:absolute;left:28%;width:44%;height:100%;background:#407d67}.challenge-critical{position:absolute;left:45%;width:10%;height:100%;background:#f4d67b}#challenge-needle{position:absolute;top:0;bottom:0;width:4px;background:#fff;transform:translateX(-2px)}#record-name{display:block;width:100%;padding:12px;font:inherit;margin:12px 0}
