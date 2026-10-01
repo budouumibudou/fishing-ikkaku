@@ -6,7 +6,7 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
  const status=document.getElementById('port-status');
  const controls={left:false,right:false};
  const pointers={left:new Set(),right:new Set()},keys={left:false,right:false};
- let narrative=false,narrativeNext=null,won=false;
+ let narrative=false,narrativeNext=null,won=false,practice=false,returnLabel='釣り場へ戻る';
  const world=1500,ground=294;let view=960;
  let player,enemies,open=false,finished=false,frame=0,last=0,damageFlash=0,score=0;
  const roster=[
@@ -21,10 +21,12 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
   document.getElementById('port-result').hidden=true;
   status.textContent='← → 移動　ジャンプで避けて、パンチで進もう。';
  }
- function start(){
+ function start(options={}){
   if(open)return;
+  practice=!!options.practice;returnLabel=options.returnLabel||'釣り場へ戻る';
   reset();open=true;panel.hidden=false;document.body.classList.add('port-open');fitCanvas();
-  story('波止場 → 港の裏通り','金塊の噂は、ひとり歩き。','船長を探して受付へ向かう。\nところが「金塊を釣る人」が「金塊を配る人」に変わって広まっていた。','道を進む',()=>story('短い街の騒動','船長の受付を目指そう','左手で ◀ ▶ を押して移動。右手でパンチ、ジャンプ。\n釣果と所持金は、負けてもそのまま。','騒動の中へ',()=>{}));
+  if(practice)story('港の裏通り · 自由に挑戦','3人をパンチで撃退しよう','左手で ◀ ▶ を押して移動。右手でパンチ、ジャンプ。\n会話で止まらず遊べます。勝敗で釣果や所持金は減りません。','挑戦する',()=>{});
+  else story('波止場 → 港の裏通り','金塊の噂は、ひとり歩き。','船長を探して受付へ向かう。\nところが「金塊を釣る人」が「金塊を配る人」に変わって広まっていた。','道を進む',()=>story('短い街の騒動','船長の受付を目指そう','左手で ◀ ▶ を押して移動。右手でパンチ、ジャンプ。\n釣果と所持金は、負けてもそのまま。','騒動の中へ',()=>{}));
   frame=requestAnimationFrame(loop);
  }
  function close(){
@@ -53,15 +55,15 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
  }
  function win(){
   finished=true;won=true;clearControls();
-  status.textContent='船長の受付へ到着！';
-  document.getElementById('port-exit').textContent='船長の受付へ';
+  status.textContent=practice?'3人撃退！ もう一度挑戦できます。':'船長の受付へ到着！';
+  document.getElementById('port-exit').textContent=practice?returnLabel:'船長の受付へ';
   const reward=onWin?.()||'港を突破した！';
   document.getElementById('port-result-text').textContent=reward;
   document.getElementById('port-result').hidden=false;
  }
  function lose(){
-  finished=true;won=false;clearControls();status.textContent='押し戻された。もう一度挑める。';document.getElementById('port-exit').textContent='波止場へ戻る';
-  document.getElementById('port-result-text').textContent='おじさんが安全な場所まで引き上げてくれた。所持金と釣果はそのまま。';
+  finished=true;won=false;clearControls();status.textContent='押し戻された。もう一度挑める。';document.getElementById('port-exit').textContent=returnLabel;
+  document.getElementById('port-result-text').textContent='今日はここまで。ひと休みして、もう一度挑もう。所持金と釣果はそのまま。';
   document.getElementById('port-result').hidden=false;
  }
  function update(dt){
@@ -77,7 +79,7 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
    if(e.dead)continue;
    e.cd=Math.max(0,e.cd-dt);e.stun=Math.max(0,e.stun-dt);
    const dx=player.x-e.x;
-   if(Math.abs(dx)<Math.min(260,view*.55)&&!e.active){e.active=true;status.textContent=e.type+'「'+e.line+'」';story('裏通りの騒動 · '+(score+1)+'/3',e.type+'が道をふさいだ','「'+e.line+'」\nあなた「噂が、おかしなことになってる……！」','パンチで切り抜ける',()=>{});break;}
+   if(Math.abs(dx)<Math.min(260,view*.55)&&!e.active){e.active=true;status.textContent=e.type+'「'+e.line+'」';if(!practice)story('裏通りの騒動 · '+(score+1)+'/3',e.type+'が道をふさいだ','「'+e.line+'」\nあなた「噂が、おかしなことになってる……！」','パンチで切り抜ける',()=>{});break;}
    if(!e.active||e.stun>0)continue;
    if(Math.abs(dx)>37)e.x+=Math.sign(dx)*e.speed*dt;
    else if(e.cd===0&&player.invuln===0&&player.y<28){
@@ -151,6 +153,7 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
   document.getElementById('port-story-chapter').textContent=chapter;document.getElementById('port-story-title').textContent=title;document.getElementById('port-story-body').textContent=body;document.getElementById('port-story-next').textContent=label;document.getElementById('port-story').hidden=false;
  }
  function clue(type){
+  if(practice){if(score===3)win();return;}
   const clues={
    'ヤクザ':['噂の出どころ','ヤクザ「金塊を配る、とは聞いてねえのか？ 船着場の古い話らしいぞ」\nあなた「配るなんて、一言も……」'],
    'おばちゃん':['昔から海へ返していたもの','おばちゃん「人違いだったかい。昔は岩礁へ供え物を運んだそうだよ」\n手がかり：金塊と、沖の岩礁。'],
