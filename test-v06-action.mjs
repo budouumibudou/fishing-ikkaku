@@ -25,7 +25,7 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
   if(open)return;
   practice=!!options.practice;returnLabel=options.returnLabel||'釣り場へ戻る';
   reset();open=true;panel.hidden=false;document.body.classList.add('port-open');fitCanvas();
-  if(practice)story('港の裏通り · 自由に挑戦','3人をパンチで撃退しよう','左手で ◀ ▶ を押して移動。右手でパンチ、ジャンプ。\n会話で止まらず遊べます。勝敗で釣果や所持金は減りません。','挑戦する',()=>{});
+  if(practice)status.textContent='再挑戦。3人を抜けると餌がもらえる。';
   else story('波止場 → 港の裏通り','金塊の噂は、ひとり歩き。','船長を探して受付へ向かう。\nところが「金塊を釣る人」が「金塊を配る人」に変わって広まっていた。','道を進む',()=>story('短い街の騒動','船長の受付を目指そう','左手で ◀ ▶ を押して移動。右手でパンチ、ジャンプ。\n釣果と所持金は、負けてもそのまま。','騒動の中へ',()=>{}));
   frame=requestAnimationFrame(loop);
  }
@@ -55,8 +55,8 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
  }
  function win(){
   finished=true;won=true;clearControls();
-  status.textContent=practice?'3人撃退！ もう一度挑戦できます。':'船長の受付へ到着！';
-  document.getElementById('port-exit').textContent=practice?returnLabel:'船長の受付へ';
+  status.textContent=practice?'3人撃退！ もう一度挑戦できます。':'船着場への道が開いた！';
+  document.getElementById('port-exit').textContent=practice?returnLabel:'船着場へ';
   const reward=onWin?.()||'港を突破した！';
   document.getElementById('port-result-text').textContent=reward;
   document.getElementById('port-result').hidden=false;
@@ -158,7 +158,7 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
    'ヤクザ':['噂の出どころ','ヤクザ「金塊を配る、とは聞いてねえのか？ 船着場の古い話らしいぞ」\nあなた「配るなんて、一言も……」'],
    'おばちゃん':['昔から海へ返していたもの','おばちゃん「人違いだったかい。昔は岩礁へ供え物を運んだそうだよ」\n手がかり：金塊と、沖の岩礁。'],
    '警官':['船長なら、受付にいる','警官「金塊を振り回してはいなかったか。失礼した。船長に聞くといい」\nあなた「どうして話が大きくなるんですか」']
-  };const [title,body]=clues[type];story('手がかり '+score+'/3',title,body,score===3?'船着場へ':'裏通りを進む',()=>{if(score===3)story('裏通り → 船着場','船長を見つけた','船長「噂に振り回されたな。岩礁なら連れていこう。まずは救命胴衣だ」\n一度通った裏通りは、次から顔パス。','受付へ到着',win);});
+  };const [title,body]=clues[type];story('手がかり '+score+'/3',title,body,score===3?'船着場へ':'裏通りを進む',()=>{if(score===3)story('裏通り → 船着場','船長を見つけた','船長「おじさんから釣り仲間だと聞いた。ここで何か重いものが沈んだ」\n一度通った裏通りは次から顔パス。まず船着場で釣ってみよう。','船着場に着く',win);});
  }
  document.getElementById('port-story-next').onclick=()=>{if(!narrative)return;const next=narrativeNext;narrativeNext=null;narrative=false;document.getElementById('port-story').hidden=true;last=0;next?.();};
  function fitCanvas(){if(!open)return;const box=canvas.parentElement.getBoundingClientRect();const compact=window.innerWidth>window.innerHeight&&window.innerHeight<=600;const target=compact?Math.max(130,window.innerHeight-166):Math.max(270,box.width*3/8);view=Math.max(420,Math.min(1200,Math.round(box.width/target*360)));canvas.width=view;canvas.height=360;canvas.style.aspectRatio=view+'/360';}

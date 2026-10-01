@@ -1,9 +1,9 @@
-import {BY_ID} from './test-v06-data.mjs?v=0.7.0-test1';
+import {BY_ID} from './test-v06-data.mjs?v=0.7.1-test1';
 const RANK_KEY='fishing-ikkaku-preview-v06-challenge-records';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function setupExtras({getState,modal,commit,toast}){
  const $=id=>document.getElementById(id);
- function people(){const s=getState();if(s.location!=='harbor'){toast('釣り仲間は波止場で待っています。');return;}
+ function people(){const s=getState();if(s.location!=='harbor'){toast('釣り仲間は波止場で待っています。');return;}if(!s.berthGoldReady){modal('まだ知らない釣り人',`<p class="modal-desc">今はおじさんと釣り、船着場の噂を追おう。沖へ行けるようになった頃、波止場のほかの釣り人にも声をかけてみよう。</p>`);return;}
  modal('波止場の釣り仲間',`<p>釣果を見せて、話してみよう。会話だけなら釣果は減りません。</p><div class="choice-list"><button id="young-talk" class="small-btn">若い釣り人・悠太（${s.youngStage===2?'釣り仲間':s.youngStage?'顔見知り':'はじめまして'}）</button><button id="neighbor-talk" class="small-btn">青いエプロンの釣り人・澄子（${s.neighborStage===2?'釣り仲間':s.neighborStage?'顔見知り':'はじめまして'}）</button></div><p>澄子さんは波止場の常連。裏通りのおばちゃんとは別人です。</p>`);
  $('young-talk').onclick=()=>{
  let line;if(!s.youngStage){s.youngStage=1;line='悠太「沖でアジが釣れたら、生き餌に残してみて。アオリイカが抱きつくよ。釣れたら見せてね」';}
