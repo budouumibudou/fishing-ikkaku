@@ -1,18 +1,21 @@
-import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.6.0-test1';
+import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.6.3-test1';
 export const STORAGE_KEY='fishing-ikkaku-v1';
-export function fresh(){return {schemaVersion:2,voyageVersion:1,location:'harbor',seaCasts:0,seaIntroRead:false,license:false,boat:false,seaEnding:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
-const counts=['money','baitCount','liveBaitCount','squidAttempts','rodLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','rodBreakCount','starStreak','maxStarStreak','seaCasts'];
+export function fresh(){return {schemaVersion:2,voyageVersion:1,location:'harbor',seaCasts:0,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
+const counts=['money','baitCount','liveBaitCount','squidAttempts','rodLevel','boatLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','rodBreakCount','starStreak','maxStarStreak','seaCasts'];
 export function hydrate(raw){
  if(!raw||typeof raw!=='object'||![1,2].includes(raw.schemaVersion))throw Error('このセーブ形式は読み込めません。元のデータは残しています。');
  const s=fresh();
  for(const key of counts){if(raw[key]!==undefined&&(!Number.isSafeInteger(raw[key])||raw[key]<0))throw Error('セーブの数値が正しくありません：'+key);if(raw[key]!==undefined)s[key]=raw[key];}
- s.rodLevel=Math.min(2,s.rodLevel);s.friendStage=Math.min(3,s.friendStage);
+ s.rodLevel=Math.min(3,s.rodLevel);s.friendStage=Math.min(3,s.friendStage);
  for(const key of ['inventory','homeInventory','catchCounts']){
   if(raw[key]!==undefined&&(typeof raw[key]!=='object'||!raw[key]||Array.isArray(raw[key])))throw Error('所持品の形式が正しくありません。');
   for(const [id,n] of Object.entries(raw[key]||{})){if(!BY_ID[id])throw Error('この版にない釣果を含んでいます：'+id);if(!Number.isSafeInteger(n)||n<0)throw Error('所持数が正しくありません。');s[key][id]=n;}
  }
  for(const key of ['discovered','readDialogueIds','pendingDialogueIds'])if(Array.isArray(raw[key]))s[key]=[...new Set(raw[key].filter(x=>typeof x==='string'))];
  for(const key of ['cleared','endingPending','goldRecoveryMode','portCleared','seaIntroRead','license','boat','seaEnding'])s[key]=raw[key]===true;
+ // Older saves only had a yes/no boat flag. Keep the purchased boat and its cost.
+ s.boatLevel=Math.min(2,s.boatLevel);if(s.boat&&s.boatLevel===0)s.boatLevel=1;
+ s.boat=s.boatLevel>0;
  for(const key of ['sound','slow','motion'])if(typeof raw.settings?.[key]==='boolean')s.settings[key]=raw.settings[key];
  s.settings.bait=['rare','live_aji'].includes(raw.settings?.bait)?raw.settings.bait:'base';
  if(raw.pendingCast&&BY_ID[raw.pendingCast.id])s.pendingCast={id:raw.pendingCast.id,safe:raw.pendingCast.safe===true,eligible:raw.pendingCast.eligible===true,live:raw.pendingCast.live===true,preview:raw.pendingCast.preview===true};
@@ -42,8 +45,9 @@ export function beginCast(s,rng=Math.random){
  else if(s.location==='harbor'&&s.castCount===4&&!s.discovered.includes('horse_mackerel')){id='horse_mackerel';safe=true;}
  else if(eligible&&s.goldPityCount>=(s.goldRecoveryMode?5:20)){id='gold';safe=true;}
  else if(s.location==='sea'){
-  id=weighted([['horse_mackerel',30],['mackerel',24],['red_seabream',20],['kue',10],['sea_grapes',12],['black_bream',4]],rng);
-  if(s.seaCasts%10===9){id='kue';safe=true;}
+  const boatLevel=s.boatLevel||0;
+  id=weighted([['horse_mackerel',30],['mackerel',24],['red_seabream',20],['kue',boatLevel===2?16:boatLevel===1?12:10],['sea_grapes',12],['black_bream',4]],rng);
+  if(s.seaCasts%(boatLevel===2?6:boatLevel===1?8:10)===(boatLevel===2?5:boatLevel===1?7:9)){id='kue';safe=true;}
  }else{
   const rare=s.settings.bait==='rare'&&s.baitCount>0;
   id=weighted(ITEMS.filter(it=>(rare?it.rare:it.base)>0).map(it=>[it.id,rare?it.rare:it.base]),rng);
@@ -82,6 +86,8 @@ export function sellAll(s){let total=0;for(const it of ITEMS)if(it.id!=='gold'&&
 export function keepAji(s,qty=1){idle(s);quantity(s,'horse_mackerel',qty);s.inventory.horse_mackerel-=qty;s.liveBaitCount+=qty;return qty;}
 export function storeCatch(s,id,qty=1,withdraw=false){idle(s);const source=withdraw?'homeInventory':'inventory',dest=withdraw?'inventory':'homeInventory';quantity(s,id,qty,source);s[source][id]-=qty;s[dest][id]=(s[dest][id]||0)+qty;return qty;}
 export function dryStarfish(s){idle(s);quantity(s,'starfish',1);s.inventory.starfish--;s.homeInventory.dried_starfish=(s.homeInventory.dried_starfish||0)+1;if(!s.discovered.includes('dried_starfish'))s.discovered.push('dried_starfish');return 1;}
-export function buy(s,kind){idle(s);let price;if(kind==='rod'){if(s.rodLevel>=2)throw Error('竿は十分になじんでいる。');price=s.rodLevel===0?120:280;}else if(['bait1','bait5'].includes(kind)){if(s.friendStage<2)throw Error('おじさんと常連同士になると買える。');price=kind==='bait1'?8:40;}else throw Error('その品物はありません。');if(s.money<price)throw Error('お金が足りません。');s.money-=price;if(kind==='rod')s.rodLevel++;else s.baitCount+=kind==='bait1'?1:5;return price;}
+export const ROD_PRICES=[120,280,650];
+export const BOAT_PRICES=[2500,3500];
+export function buy(s,kind){idle(s);let price;if(kind==='rod'){if(s.rodLevel>=3)throw Error('竿は最高ランクです。');price=ROD_PRICES[s.rodLevel];}else if(['bait1','bait5'].includes(kind)){if(s.friendStage<2)throw Error('おじさんと常連同士になると買える。');price=kind==='bait1'?8:40;}else throw Error('その品物はありません。');if(s.money<price)throw Error('お金が足りません。');s.money-=price;if(kind==='rod')s.rodLevel++;else s.baitCount+=kind==='bait1'?1:5;return price;}
 export function canSail(s){return s.cleared||s.friendStage>=1||s.portCleared||s.seaIntroRead;}
-export function voyageAction(s,kind){idle(s);if(!canSail(s))throw Error('おじさんと6投して釣り仲間になるか、港の街で船長を探そう。金塊は不要です。');if(kind==='sea'){s.location='sea';s.seaIntroRead=true;}else if(kind==='harbor')s.location='harbor';else if(kind==='license'){if(s.license)throw Error('免許は取得済み。');if(s.seaCasts<5)throw Error('まずは同乗で5投、経験を積もう。');if(s.money<1000)throw Error('講習費は1,000 G。');s.money-=1000;s.license=true;}else if(kind==='boat'){if(!s.license)throw Error('自分で操縦するには、先に免許を取ろう。');if(s.boat)throw Error('船は購入済み。');if(s.money<12000)throw Error('船代は12,000 G。');s.money-=12000;s.boat=true;}else if(kind==='offering'){if(s.seaEnding||s.location!=='sea')throw Error('沖へ出てからにしよう。');if(!(s.inventory.kue>0))throw Error('手元にクエを1匹残しておこう。');s.inventory.kue--;s.seaEnding=true;s.endingPending=true;}else throw Error('その行動はできません。');}
+export function voyageAction(s,kind){idle(s);if(!canSail(s))throw Error('おじさんと6投して釣り仲間になるか、港の街で船長を探そう。金塊は不要です。');if(kind==='sea'){s.location='sea';s.seaIntroRead=true;}else if(kind==='harbor')s.location='harbor';else if(kind==='license'){if(s.license)throw Error('免許は取得済み。');if(s.seaCasts<5)throw Error('まずは同乗で5投、経験を積もう。');if(s.money<1000)throw Error('講習費は1,000 G。');s.money-=1000;s.license=true;}else if(kind==='boat'||kind==='boatUpgrade'){if(s.location!=='harbor')throw Error('船の購入と改装は、帰港してから受付で行えます。');if(!s.license)throw Error('自分で操縦するには、先に免許を取ろう。');const level=s.boatLevel||0;if(kind==='boat'&&level!==0)throw Error('船は購入済み。改装は受付で選べます。');if(kind==='boatUpgrade'&&level!==1)throw Error('改装には自分の船が必要です。');const price=BOAT_PRICES[level];if(s.money<price)throw Error('船の費用が足りません。');s.money-=price;s.boatLevel=level+1;s.boat=true;}else if(kind==='offering'){if(s.seaEnding||s.location!=='sea')throw Error('沖へ出てからにしよう。');if(!(s.inventory.kue>0))throw Error('手元にクエを1匹残しておこう。');s.inventory.kue--;s.seaEnding=true;s.endingPending=true;}else throw Error('その行動はできません。');}

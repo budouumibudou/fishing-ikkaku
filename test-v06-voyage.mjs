@@ -1,5 +1,5 @@
-import {voyageAction} from './test-v06-core.mjs?v=0.6.0-test1';
-import {canSail} from './test-v06-core.mjs?v=0.6.0-test1';
+import {voyageAction,BOAT_PRICES} from './test-v06-core.mjs?v=0.7.0-test1';
+import {canSail} from './test-v06-core.mjs?v=0.6.3-test1';
 export const SEA_SPRITES={horse_mackerel:'test-v06-horse_mackerel.png',mackerel:'test-v06-mackerel.png',red_seabream:'test-v06-red_seabream.png',kue:'test-v06-kue.png'};
 export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast}){
  const $=id=>document.getElementById(id);
@@ -7,10 +7,11 @@ export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast})
  function menu(){
   const s=getState();
   if(!canSail(s)){modal('船の受付',`<p class="modal-desc">船長は、おじさんの紹介を待っています。<br>① 波止場で6投して、おじさんと「釣り仲間」の会話をする<br>または<br>② 港の街の短い騒動を抜けて船長を探す<br><br>金塊、免許、自分の船は同乗に不要です。<br>現在：${s.castCount}投 · ${s.portCleared?'街は突破済み':'街はまだ'}</p><button id="reception-back" class="small-btn gold">釣り場へ戻る</button>`);$('reception-back').onclick=close;return;}
-  modal('船の受付',`<p class="modal-desc">船長「救命胴衣、よし。最初は私が操縦するよ」<br>同乗は無料。帰港して売買できます。自分の船でも救命胴衣は常時着用。<br>所持金 ${s.money.toLocaleString()} G · 沖で ${s.seaCasts} 投</p><div class="voyage-progress">${s.license?'✓ 免許取得':'任意：同乗で沖を5投 → 免許講習'}<br>${s.boat?'✓ 自分の船':'任意：免許取得後、12,000 Gで自分の船を購入'}<br>${s.seaEnding?'✓ チヌ神の試練達成':'同乗でも沖の魚が釣れる。クエを釣ったら海の試練へ'}</div><div class="choice-list"><button id="voyage-travel" class="small-btn gold">${s.location==='sea'?'帰港する':s.boat?'自分の船で出航':'船長の船に同乗する（無料）'}</button><button id="voyage-license" class="small-btn" ${s.license||s.seaCasts<5||s.money<1000?'disabled':''}>${s.license?'免許取得済み':'免許講習に挑戦 · 1,000 G（合格時）'}</button><button id="voyage-buy" class="small-btn" ${!s.license||s.boat||s.money<12000?'disabled':''}>${s.boat?'船は購入済み':'自分の船を買う · 12,000 G'}</button><button id="voyage-god" class="small-btn" ${s.seaEnding||!(s.inventory.kue>0)||s.location!=='sea'?'disabled':''}>海の試練（沖でクエ1匹）</button></div>`);
+  modal('船の受付',`<p class="modal-desc">船長「救命胴衣、よし。最初は私が操縦するよ」<br>同乗は無料。帰港して売買できます。自分の船でも救命胴衣は常時着用。<br>所持金 ${s.money.toLocaleString()} G · 沖で ${s.seaCasts} 投</p><div class="voyage-progress">${s.license?'✓ 免許取得':'任意：同乗で沖を5投 → 免許講習'}<br>${s.boatLevel===2?'✓ 改装した自分の船（クエは6投ごとに確定）':s.boat?'✓ 自分の船（クエは8投ごとに確定）':'任意：免許取得後、2,500 Gで自分の船を購入（クエは8投ごとに確定）'}<br>${s.seaEnding?'✓ チヌ神の試練達成':'同乗でも沖の魚が釣れる。クエを釣ったら海の試練へ'}</div><div class="choice-list"><button id="voyage-travel" class="small-btn gold">${s.location==='sea'?'帰港する':s.boat?'自分の船で出航':'船長の船に同乗する（無料）'}</button><button id="voyage-license" class="small-btn" ${s.license||s.seaCasts<5||s.money<1000?'disabled':''}>${s.license?'免許取得済み':'免許講習に挑戦 · 1,000 G（合格時）'}</button><button id="voyage-buy" class="small-btn" ${s.location==='sea'||!s.license||s.boat||s.money<BOAT_PRICES[0]?'disabled':''}>${s.boat?'自分の船は購入済み':'自分の船を買う · 2,500 G'}</button><button id="voyage-upgrade" class="small-btn" ${s.location==='sea'||!s.license||s.boatLevel!==1||s.money<BOAT_PRICES[1]?'disabled':''}>${s.boatLevel===2?'船は改装済み':'船を改装 · 3,500 G（クエは6投ごと）'}</button><button id="voyage-god" class="small-btn" ${s.seaEnding||!(s.inventory.kue>0)||s.location!=='sea'?'disabled':''}>海の試練（沖でクエ1匹）</button></div>`);
   $('voyage-travel').onclick=()=>{const target=s.location==='sea'?'harbor':'sea';if(act(target)){close();toast(target==='sea'?'救命胴衣を着用して出航！':'波止場に戻った。釣果を売ろう。');}};
   $('voyage-license').onclick=exam;
   $('voyage-buy').onclick=()=>{if(act('boat')){toast('あなたの船「一獲丸」を手に入れた！');menu();}};
+  $('voyage-upgrade').onclick=()=>{if(act('boatUpgrade')){toast('一獲丸を改装した。クエの狙い場へ行きやすくなった！');menu();}};
   $('voyage-god').onclick=trial;
  }
  function exam(){
