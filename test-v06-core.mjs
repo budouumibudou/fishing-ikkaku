@@ -1,6 +1,6 @@
-import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.6.3-test1';
+import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.6.4-test1';
 export const STORAGE_KEY='fishing-ikkaku-v1';
-export function fresh(){return {schemaVersion:2,voyageVersion:1,location:'harbor',seaCasts:0,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
+export function fresh(){return {schemaVersion:2,voyageVersion:1,location:'harbor',seaCasts:0,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,trueEndingSeen:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
 const counts=['money','baitCount','liveBaitCount','squidAttempts','rodLevel','boatLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','rodBreakCount','starStreak','maxStarStreak','seaCasts'];
 export function hydrate(raw){
  if(!raw||typeof raw!=='object'||![1,2].includes(raw.schemaVersion))throw Error('このセーブ形式は読み込めません。元のデータは残しています。');
@@ -12,7 +12,7 @@ export function hydrate(raw){
   for(const [id,n] of Object.entries(raw[key]||{})){if(!BY_ID[id])throw Error('この版にない釣果を含んでいます：'+id);if(!Number.isSafeInteger(n)||n<0)throw Error('所持数が正しくありません。');s[key][id]=n;}
  }
  for(const key of ['discovered','readDialogueIds','pendingDialogueIds'])if(Array.isArray(raw[key]))s[key]=[...new Set(raw[key].filter(x=>typeof x==='string'))];
- for(const key of ['cleared','endingPending','goldRecoveryMode','portCleared','seaIntroRead','license','boat','seaEnding'])s[key]=raw[key]===true;
+ for(const key of ['cleared','endingPending','goldRecoveryMode','portCleared','seaIntroRead','license','boat','seaEnding','trueEndingSeen'])s[key]=raw[key]===true;
  // Older saves only had a yes/no boat flag. Keep the purchased boat and its cost.
  s.boatLevel=Math.min(2,s.boatLevel);if(s.boat&&s.boatLevel===0)s.boatLevel=1;
  s.boat=s.boatLevel>0;

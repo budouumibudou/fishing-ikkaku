@@ -1,5 +1,5 @@
 import {voyageAction,BOAT_PRICES} from './test-v06-core.mjs?v=0.7.0-test1';
-import {canSail} from './test-v06-core.mjs?v=0.6.3-test1';
+import {canSail} from './test-v06-core.mjs?v=0.6.4-test1';
 export const SEA_SPRITES={horse_mackerel:'test-v06-horse_mackerel.png',mackerel:'test-v06-mackerel.png',red_seabream:'test-v06-red_seabream.png',kue:'test-v06-kue.png'};
 export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast}){
  const $=id=>document.getElementById(id);
