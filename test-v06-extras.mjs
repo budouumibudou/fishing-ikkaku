@@ -1,4 +1,4 @@
-import {BY_ID} from './test-v06-data.mjs?v=0.7.1-test1';
+import {BY_ID} from './test-v06-data.mjs?v=0.7.2-test1';
 const RANK_KEY='fishing-ikkaku-preview-v06-challenge-records';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function setupExtras({getState,modal,commit,toast}){

@@ -1,10 +1,10 @@
-import {setupExtras} from './test-v06-extras.mjs?v=0.7.1-test1';
-import {setupVoyage,SEA_SPRITES} from './test-v06-voyage.mjs?v=0.7.1-test1';
-import {Soundtrack,musicScene} from './test-v06-music.mjs?v=0.7.1-test1';
-import {SPRITES} from './test-v06-sprites.mjs?v=0.7.1-test1';
-import {setupPortAction} from './test-v06-action.mjs?v=0.7.1-test1';
-import {ITEMS,BY_ID,FRIENDS,DIALOGUES,SMALLTALK,CAPTAIN_TALK} from './test-v06-data.mjs?v=0.7.1-test1';
-import {STORAGE_KEY as LIVE_STORAGE_KEY,fresh,hydrate,availableStory,readStory,successWidth,beginCast,completeCast,resolveBlackBream,sell,sellAll,buy,ROD_PRICES,criticalWidth,keepAji,storeCatch,dryStarfish,encodeBackup,decodeBackup,voyageAction,canVisitBerth,canSail,knowsRumor,portVictory,EDIBLE,eatCatch} from './test-v06-core.mjs?v=0.7.1-test1';
+import {setupExtras} from './test-v06-extras.mjs?v=0.7.2-test1';
+import {setupVoyage,SEA_SPRITES} from './test-v06-voyage.mjs?v=0.7.2-test1';
+import {Soundtrack,musicScene} from './test-v06-music.mjs?v=0.7.2-test1';
+import {SPRITES} from './test-v06-sprites.mjs?v=0.7.2-test1';
+import {setupPortAction} from './test-v06-action.mjs?v=0.7.2-test1';
+import {ITEMS,BY_ID,FRIENDS,DIALOGUES,SMALLTALK,CAPTAIN_TALK} from './test-v06-data.mjs?v=0.7.2-test1';
+import {STORAGE_KEY as LIVE_STORAGE_KEY,fresh,hydrate,availableStory,readStory,successWidth,beginCast,completeCast,resolveBlackBream,sell,sellAll,buy,ROD_PRICES,criticalWidth,keepAji,storeCatch,dryStarfish,encodeBackup,decodeBackup,voyageAction,canVisitBerth,canSail,canPractice,canMeetDeity,knowsRumor,portVictory,EDIBLE,eatCatch} from './test-v06-core.mjs?v=0.7.2-test1';
 const STORAGE_KEY=LIVE_STORAGE_KEY+'-preview-v06';
 const PRIOR_TEST_KEY=LIVE_STORAGE_KEY+'-preview-v05';
 const $=id=>document.getElementById(id);
@@ -17,7 +17,7 @@ let phase='idle',elapsed=0,waitTime=3,needle=0,lastFrame=0,active=false,toastTim
 const quantities=new Map();let stockTab='deposit',previewNext=null,lastCaptainChat=-1,lastNotice='';
 function iconArt(body){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" shape-rendering="crispEdges">'+body+'</svg>');}
 const sprites={...SPRITES,...SEA_SPRITES,gold:'test-v06-gold-fixed.png',black_bream:'test-v06-black-bream-fixed.png',sea_grapes:'test-v06-sea_grapes.png',aori_squid:'test-v06-aori_squid.png',playerJacket:'test-v06-player_jacket.png',captain:'test-v06-captain.png',
- sandal:iconArt('<path d="M20 8h28v8h8v40h-8v12H20V56h-8V20h8z" fill="#153440"/><path d="M24 12h20v8h8v32h-8v12H24V52h-8V24h8z" fill="#d69955"/><path d="M24 24h8v12h8V24h8v8h-8v16h-8V32h-8z" fill="#327d89"/><path d="M24 56h20v4H24z" fill="#f1ca88"/>'),
+ sandal:'test-v06-sandal.png',police:'test-v06-police.png',uncleJacket:'test-v06-uncle_jacket.png',
  ballpen:'test-v06-ballpen.png',octopus:'test-v06-octopus.png',sealed_book:'test-v06-sealed_book.png'};
 sprites.dried_starfish=sprites.starfish;
 function save(){
@@ -25,7 +25,7 @@ function save(){
  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(s));storageOk=true;}catch{storageOk=false;}
  $('save-note').textContent=storageOk?'テスト用の記録に保存':'保存できません。バックアップを取ってください';return storageOk;
 }
-function toast(text){$('toast').textContent=text;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,3200);}
+function toast(text){const feedback=$('modal-feedback');if($('modal').open){feedback.textContent=text;feedback.hidden=false;} $('toast').textContent=text;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,3200);}
 function log(text){$('log').textContent=text;}
 function image(src,alt,cls=''){return `<img src="${src||''}" alt="${alt}" class="${cls}">`;}
 let startupStep='素材を配置';
@@ -54,7 +54,8 @@ function render(){
  $('port').lastElementChild.textContent='港の裏通り・遊ぶ';
  document.body.classList.toggle('at-sea',s.location==='sea');document.body.classList.toggle('at-berth',s.location==='berth');$('player').src=s.location==='sea'?sprites.playerJacket:sprites.player;$('neighbor').hidden=s.location==='berth';
  $('boat-scene-image').src=s.boatLevel===2?'test-v06-boat_scene_upgrade.png':'test-v06-boat_scene.png';
- $('sea-uncle').src=sprites.neighbor;
+ $('sea-uncle').src=sprites.uncleJacket;
+ $('harbor-background').src=s.location==='berth'?'test-v06-berth.png':'test-v06-harbor.png';
  $('line').setAttribute('d',s.location==='sea'?'M547 159 Q630 285 731 414':'M557 241 Q580 340 665 388');
  document.querySelector('.location').textContent=s.location==='sea'?(s.boat?(s.boatLevel===2?'沖の岩礁 · 改装した一獲丸':'沖の岩礁 · 一獲丸'):'沖の岩礁 · 船長の船'):(s.location==='berth'?'港の船着場':'波止場の昼下がり');
  $('voyage').textContent=s.location==='sea'?'船の受付・帰港':s.location==='berth'?'船長・船の受付':'船の受付';
@@ -65,11 +66,12 @@ function render(){
  $('rare-bait-option').textContent=`珍味の餌 · ${s.baitCount}個`;$('rare-bait-option').disabled=s.baitCount===0;
  $('live-bait-option').textContent=`生きたアジ · ${s.liveBaitCount}匹`;$('live-bait-option').disabled=s.liveBaitCount===0;if((!s.baitCount&&s.settings.bait==='rare')||(!s.liveBaitCount&&s.settings.bait==='live_aji'))s.settings.bait='base';for(const [id,key,label] of [['krill','krillCount','オキアミ'],['sage','sageCount','賢者の餌'],['pork_fat','fatCount','豚の脂身']]){const option=$(id+'-bait-option');option.textContent=label+' · '+s[key]+'個';option.disabled=s[key]<1;option.hidden=id==='sage'&&s[key]<1;if(s.settings.bait===id&&s[key]<1)s.settings.bait='base';}$('bait').value=s.settings.bait;
  const entries=ITEMS.filter(it=>(s.inventory[it.id]||0)>0);const value=entries.reduce((n,it)=>n+it.price*s.inventory[it.id],0);
- $('pocket-value').textContent=value.toLocaleString('ja-JP')+' G';$('pocket-list').textContent=entries.length?entries.map(it=>`${it.name} ×${s.inventory[it.id]}`).join('　'):'まだ空っぽ。次の一投を。';
- $('goal-title').textContent=s.trueEndingSeen?'今日も、この港で。':s.location==='sea'?(s.inventory.kue>0?'クエを手に、船長と岩礁へ。':'沖の岩礁で、大物クエを狙おう。'):s.location==='berth'&&!s.berthGoldReady?'船着場で金塊を釣り、船長に見せよう。':!knowsRumor(s)?(s.friendStage===0?'まずは波止場で妙な釣果を見せよう。':'おじさんと釣り、船着場の噂を聞こう。'):!s.portCleared?'港の裏通りを抜けて船着場へ。':!s.berthGoldReady?'受付から船着場へ。金塊を探そう。':'受付からおじさんと船へ。';
+ $('pocket-value').textContent=value.toLocaleString('ja-JP')+' G';$('pocket-list').innerHTML=entries.length?entries.map(it=>`<button class="pocket-item" data-pocket="${it.id}">${image(sprites[it.id],it.name)}<span>${it.name}<br>×${s.inventory[it.id]}</span></button>`).join(''):'まだ空っぽ。次の一投を。';document.querySelectorAll('[data-pocket]').forEach(btn=>btn.onclick=()=>showPocketItem(btn.dataset.pocket));
+ $('goal-title').textContent=s.trueEndingSeen?'今日も、この港で。':s.location==='sea'?(s.catchCounts.kue>0?'船長と、金塊の噂が始まった岩礁へ。':'沖の岩礁で、大物クエを狙おう。'):s.location==='berth'&&!s.berthGoldReady?'船着場で金塊を釣り、船長に見せよう。':!knowsRumor(s)?(s.friendStage===0?'まずは波止場で妙な釣果を見せよう。':'おじさんと釣り、船着場の噂を聞こう。'):!s.portCleared?'港の裏通りを抜けて船着場へ。':!s.berthGoldReady?'受付から船着場へ。金塊を探そう。':'受付からおじさんと船へ。';
  $('goal-eyebrow').textContent='今日のねらい';
  $('tutorial-badge').hidden=s.castCount>=3;$('tutorial-badge').textContent=`練習 ${Math.min(3,s.castCount+1)} / 3`;
- const busy=phase!=='idle';for(const id of ['talk','shop','book','port','voyage','bait','settings','home-stock','save-menu'])$(id).disabled=busy;
+ $('reef-entry').hidden=!canMeetDeity(s);
+ const busy=phase!=='idle';for(const id of ['talk','shop','buy-shop','reef-entry','book','port','voyage','bait','settings','home-stock','save-menu'])$(id).disabled=busy;
  $('port').disabled=busy;
  $('fish').disabled=!active||['result','black','action','squid_wait','octopus_hold'].includes(phase);$('meter').hidden=phase!=='reeling';
  $('fish').classList.toggle('bite',phase==='bite');$('scene').classList.toggle('bite-scene',phase==='bite');
@@ -94,7 +96,6 @@ function talkNow(){
  const id=availableStory(s);
  if(id){dialogue(id);return;}
  if(s.location==='berth'){dialogue([['船長',s.berthGoldReady?'救命胴衣を用意した。受付から出航できるよ。':'この辺りで重いものが沈んだ。釣れたら見せてくれ。']]);return;}
- if(s.location==='sea'&&s.inventory.kue>0&&!s.seaEnding){voyage.trial();return;}
  if(s.location==='sea'){lastCaptainChat=(lastCaptainChat+1)%(CAPTAIN_TALK.length+2);if(lastCaptainChat<CAPTAIN_TALK.length)dialogue(CAPTAIN_TALK[lastCaptainChat]);else dialogue(lastCaptainChat===CAPTAIN_TALK.length?[[ '隣のおじさん','波止場じゃ見られない魚がいるね。船長の舵は確かだ。'],['あなた','一緒に来てくれて、心強いです。']]:[['あなた','こんな遠くまで来るとは。'],['隣のおじさん','最初のヒトデから、ずいぶん釣ったね。帰ったらまた隣を空けておくよ。']]);return;}
  const chats=SMALLTALK.filter((_,i)=>i!==3||s.discovered.includes('grapes'));lastChat=(lastChat+1)%chats.length;dialogue(chats[lastChat]);
 }
@@ -104,17 +105,17 @@ const extras=setupExtras({getState:()=>s,modal:openModal,commit:()=>{save();rend
 function showMenu(){
  if(phase!=='idle')return;
  const shore=s.location==='harbor',hasStory=!!availableStory(s);
- openModal(shore?'波止場のメニュー':s.location==='berth'?'船着場のメニュー':'船上のメニュー',`<div class="menu-grid"><button id="menu-people" class="small-btn" ${shore&&s.berthGoldReady?'':'disabled'}>ほかの釣り人と話す</button><button id="menu-challenge" class="small-btn">10投チャレンジ・端末内記録</button><button id="menu-talk" class="small-btn gold">${hasStory?'！ 新しい話を聞く':s.location==='berth'?'船長と話す':'おじさんと話す'}</button><button id="menu-book" class="small-btn">釣果図鑑</button><button id="menu-voyage" class="small-btn">${shore?'船の受付':'船の受付・移動'}</button><button id="menu-shop" class="small-btn" ${shore?'':'disabled'}>売る・買う${shore?'':'（波止場で）'}</button><button id="menu-port" class="small-btn">港の裏通り・アクション</button><button id="menu-stock" class="small-btn" ${shore?'':'disabled'}>家の保管箱${shore?'':'（波止場で）'}</button><button id="menu-backup" class="small-btn">セーブのバックアップ</button><button id="menu-settings" class="small-btn">設定・試遊用ボタン</button></div><p class="modal-desc menu-summary">手元の釣果：${$('pocket-list').textContent}<br>売却額：${$('pocket-value').textContent}</p>`);
+ openModal(shore?'波止場のメニュー':s.location==='berth'?'船着場のメニュー':'船上のメニュー',`<div class="menu-grid"><button id="menu-people" class="small-btn" ${shore&&s.seaIntroRead?'':'disabled'}>ほかの釣り人と話す</button><button id="menu-challenge" class="small-btn">10投チャレンジ・端末内記録</button><button id="menu-talk" class="small-btn gold">${hasStory?'！ 新しい話を聞く':s.location==='berth'?'船長と話す':'おじさんと話す'}</button><button id="menu-book" class="small-btn">釣果図鑑</button><button id="menu-voyage" class="small-btn">${shore?'船の受付':'船の受付・移動'}</button><button id="menu-shop" class="small-btn" ${shore?'':'disabled'}>売る・買う${shore?'':'（波止場で）'}</button><button id="menu-port" class="small-btn">港の裏通り・アクション</button><button id="menu-stock" class="small-btn" ${shore?'':'disabled'}>家の保管箱${shore?'':'（波止場で）'}</button><button id="menu-backup" class="small-btn">セーブのバックアップ</button><button id="menu-settings" class="small-btn">設定・試遊用ボタン</button></div><p class="modal-desc menu-summary">手元の釣果：${$('pocket-list').textContent}<br>売却額：${$('pocket-value').textContent}</p>`);
  const actions={people:extras.people,challenge:extras.competition,talk:talkNow,book:showBook,voyage:()=>voyage.menu(),shop:()=>{shopTab='sell';showShop();},port:openPort,stock:showStock,backup:showBackup,settings:showSettings};
  for(const [id,fn] of Object.entries(actions))$('menu-'+id).onclick=()=>{modalCloseAction=null;$('modal').close();$('modal-body').innerHTML='';fn();};
 }
 $('menu-open').onclick=showMenu;
 
-function openModal(title,html,onClose=null){$('modal-title').textContent=title;$('modal-body').innerHTML=html;modalCloseAction=onClose;if(!$('modal').open)$('modal').showModal();}
-let modalCloseAction=null,closing=false;
-function closeModal(){if(closing)return;closing=true;const cb=modalCloseAction;modalCloseAction=null;$('modal').close();$('modal-body').innerHTML='';setTimeout(()=>{closing=false;cb?.();updateStoryNotice();},40);}
+function openModal(title,html,onClose=null){mandatoryDialogue=false;$('close-modal').hidden=false;$('modal-feedback').hidden=true;$('modal-title').textContent=title;$('modal-body').innerHTML=html;modalCloseAction=onClose;if(!$('modal').open)$('modal').showModal();}
+let modalCloseAction=null,closing=false,mandatoryDialogue=false;
+function closeModal(force=false){if(mandatoryDialogue&&force!==true)return;if(closing)return;closing=true;const cb=modalCloseAction;modalCloseAction=null;$('modal').close();$('modal-body').innerHTML='';setTimeout(()=>{closing=false;cb?.();updateStoryNotice();},40);}
 $('close-modal').onclick=closeModal;$('modal').addEventListener('cancel',e=>{e.preventDefault();closeModal();});
-function dialogue(idOrLines,onEnd){
+function dialogue(idOrLines,onEnd,mandatory=false){
  const id=typeof idOrLines==='string'?idOrLines:null;
  const lines=id?(id==='friend2'&&!s.discovered.includes('grapes')?DIALOGUES.friend2BeforeGrapes:DIALOGUES[id]):idOrLines;
  if(!Array.isArray(lines)||!lines.length){onEnd?.();return;}
@@ -130,10 +131,11 @@ function dialogue(idOrLines,onEnd){
  // Keep the same dialog, portrait nodes and next button for the whole conversation.
  // Never replace a tapped button or recreate the dialog between lines.
  openModal(s.location==='sea'?'船上の会話':s.location==='berth'?'船着場の会話':'波止場の会話','<div class="dialogue"><div class="dialogue-portraits"><img id="chat-player" alt="あなた"><img id="chat-neighbor" alt="隣のおじさん" hidden></div><div class="speech"><p id="chat-speaker" class="speaker"></p><p id="chat-words" class="words"></p></div></div><div class="dialogue-footer"><small id="chat-page"></small><button type="button" class="small-btn gold" id="dialogue-next">つづきを聞く</button></div>',()=>{if(page===lines.length-1||id==='clear')finish();});
+ mandatoryDialogue=mandatory;$('close-modal').hidden=mandatory;
  $('chat-player').src=sprites.player;$('chat-neighbor').src=sprites.neighbor;
  function paint(){
   const [who,text]=lines[page];
-  $('chat-neighbor').src=who==='船長'?sprites.captain:who==='チヌ神'?sprites.black_bream:sprites.neighbor;$('chat-neighbor').alt=who;
+  $('chat-neighbor').src=who==='船長'?sprites.captain:who==='チヌ神'?sprites.black_bream:who==='警官'?sprites.police:(s.location==='sea'?sprites.uncleJacket:sprites.neighbor);$('chat-neighbor').alt=who;
   $('chat-player').hidden=who!=='あなた';$('chat-neighbor').hidden=who==='あなた';
   $('chat-speaker').textContent=who;$('chat-words').textContent=text;
   $('chat-page').textContent=(page+1)+' / '+lines.length;
@@ -143,12 +145,12 @@ function dialogue(idOrLines,onEnd){
  $('dialogue-next').onclick=()=>{
   if(advancing||finished||closing)return;
   advancing=true;const button=$('dialogue-next');button.disabled=true;effect('page');
-  if(page===lines.length-1){closeModal();return;}
+  if(page===lines.length-1){mandatoryDialogue=false;closeModal(true);return;}
   page++;paint();
   setTimeout(()=>{advancing=false;if($('dialogue-next')===button)button.disabled=false;},180);
  };
 }
-$('start').onclick=()=>{active=true;$('title-screen').hidden=true;soundInit();if(s.endingPending){showEndingIntro(true);return;}if(s.pendingBlack){setPhase('black');showBlackDialogue(s.pendingBlack);return;}if(s.pendingCast){setPhase('waiting');waitTime=2.5;log('さっきの一投から再開します。');return;}render();if(s.location==='harbor'&&!s.readDialogueIds.includes('intro'))dialogue('intro',()=>log('「釣り糸を投げる」から始めよう。最初の3投は練習です。'));};
+$('start').onclick=()=>{active=true;$('title-screen').hidden=true;soundInit();if(s.deityPending){voyage.trial();return;}if(s.endingPending){showEndingIntro(true);return;}if(s.pendingBlack){setPhase('black');showBlackDialogue(s.pendingBlack);return;}if(s.pendingCast){setPhase('waiting');waitTime=2.5;log('さっきの一投から再開します。');return;}render();if(s.location==='harbor'&&!s.readDialogueIds.includes('intro'))dialogue('intro',()=>log('「釣り糸を投げる」から始めよう。最初の3投は練習です。'));};
 $('home').onclick=e=>{e.preventDefault();if(phase!=='idle'){toast('この一投が終わってから戻ろう。');return;}active=false;$('title-screen').hidden=false;$('start').textContent='つづきから釣る';render();};
 $('sound').onclick=soundToggle;$('title-sound').onclick=()=>{if(s.settings.sound&&!audio){soundInit();render();}else soundToggle();};
 $('bait').onchange=()=>{s.settings.bait=$('bait').value;save();};
@@ -168,10 +170,10 @@ function showBlackDialogue(encounter){
  $('black-event').hidden=true;let question=0;
  const finish=choice=>{if(!s.pendingBlack)return;modalCloseAction=null;if($('modal').open)$('modal').close();const result=resolveBlackBream(s,choice);save();showResult(result);};
  const questions=[{line:'この海で、いちばん偉いのは誰だ。',answers:[['海です',true],['私です',false]]},{line:'釣ったものは、どう受け取る。',answers:[['海から、いただいたものです',true],['全部、私のものです',false]]}];
- function paint(){const q=questions[question];openModal('黒鯛との会話',`<div class="result black-talk">${image(sprites.black_bream,'黒鯛')}<h3>黒鯛「${q.line}」</h3><p>${encounter.protected?'初めての会話。今回は竿も釣果も失いません。':'普通の会話で怒らせると竿の強化が一段階下がります。家の保管品は無事です。'}</p><div class="choice-list">${q.answers.map(([label],i)=>`<button class="small-btn" data-answer="${i}">${label}</button>`).join('')}<button id="release-now" class="small-btn">話さずリリース（ほかの釣果は残す）</button>${s.rodBreakCount>=10?'<button id="black-repel" class="small-btn gold">10本の借りを返す！ 黒鯛をシバいて追い返す</button>':''}${encounter.protected?'':'<button id="black-risk" class="small-btn danger">強気に交渉する（携帯釣果を全て失う危険あり）</button>'}</div></div>`,()=>finish('release'));
+ function paint(){const q=questions[question];openModal('黒鯛との会話',`<div class="result black-talk">${image(sprites.black_bream,'黒鯛')}<h3>黒鯛「${q.line}」</h3><p>${encounter.protected?'初めての会話。今回は竿も釣果も失いません。':'普通の会話で怒らせると竿の強化が一段階下がります。手元の釣果・生き餌・所持金は減りません。'}</p><div class="choice-list">${q.answers.map(([label],i)=>`<button class="small-btn" data-answer="${i}">${label}</button>`).join('')}<button id="release-now" class="small-btn">話さずリリース（ほかの釣果は残す）</button>${s.rodBreakCount>=10?'<button id="black-repel" class="small-btn gold">10本の借りを返す！ 黒鯛をシバいて追い返す</button>':''}${encounter.protected?'':'<button id="black-risk" class="small-btn danger">強気に交渉する（失敗すると竿が一段階下がる）</button>'}</div></div>`,()=>finish('release'));
  document.querySelectorAll('[data-answer]').forEach(btn=>btn.onclick=()=>{if(q.answers[Number(btn.dataset.answer)][1]){if(++question===questions.length)finish('peace');else paint();}else finish(encounter.protected?'release':'anger');});
  $('release-now').onclick=()=>finish('release');if($('black-repel'))$('black-repel').onclick=()=>finish('repel');
- if($('black-risk'))$('black-risk').onclick=()=>{openModal('危険を承知で交渉しますか？',`<p class="modal-desc">成功すれば黒鯛が仲間を呼び、2匹を持ち帰れます。<br>失敗の確率は半分。携帯中の釣果と生き餌をすべて失い、竿の強化が一段階下がります。家の保管品と所持金は残ります。予備の竿はすぐ借りられます。</p><div class="row-buttons"><button id="risk-no" class="small-btn">やめて会話へ</button><button id="risk-yes" class="small-btn danger">承知して交渉する</button></div>`,()=>finish('release'));$('risk-no').onclick=paint;$('risk-yes').onclick=()=>finish('gamble');};
+ if($('black-risk'))$('black-risk').onclick=()=>{openModal('危険を承知で交渉しますか？',`<p class="modal-desc">成功すれば黒鯛が仲間を呼び、2匹を持ち帰れます。<br>失敗の確率は半分。竿の強化が一段階下がります。釣果・生き餌・所持金・家の保管品は減りません。予備の竿はすぐ借りられます。</p><div class="row-buttons"><button id="risk-no" class="small-btn">やめて会話へ</button><button id="risk-yes" class="small-btn danger">承知して交渉する</button></div>`,()=>finish('release'));$('risk-no').onclick=paint;$('risk-yes').onclick=()=>finish('gamble');};
  }paint();
 }
 function showResult(result){
@@ -180,12 +182,11 @@ function showResult(result){
  let html,title;
  if(result.kind==='escape'){effect('escape');title='逃げられた……';html='<div class="result"><h3>また、次の一投。</h3><p>ウキが沈んだら合わせて、目印が緑の帯に入ったら引き上げよう。<br>設定の「ゆっくり釣り」でも遊べます。</p><button id="result-ok" class="fish-btn">もう一度、海へ</button></div>';log('逃げられた。そんな時もある。');}
  else if(result.kind==='black'){
-  const lost=result.lost.map(([id,n])=>BY_ID[id].name+' ×'+n).join('、');
-  const copy={repel:['10本の借り、返した！',`黒鯛はびっくりして海へ帰った。竿も釣果も無事。${helper}「神様の方にはやるなよ」`],peace:['会話が通じた。','黒鯛を1匹持ち帰れる。ほかの釣果もそのまま。'],anger:['黒鯛を怒らせた！',`竿が折れた。${helper}の予備の竿ですぐ続けられる。強化は一段階下がったが、釣果は無事。`],release:['黒鯛を海へ戻した。','ほかの釣果と竿はそのまま。黒鯛は静かに帰っていった。'],alllost:['交渉失敗。携帯中の釣果を失った。',`失ったもの：${lost||'携帯釣果なし'}。生き餌も失った。家の保管品と所持金は無事。予備の竿ですぐ釣り直せる。`],'gamble-win':['強気の交渉が通じた！',`黒鯛2匹を持ち帰れる。${helper}「今日は、海の機嫌がよかったね」`]}[result.resolution];
+  const copy={repel:['10本の借り、返した！',`黒鯛はびっくりして海へ帰った。竿も釣果も無事。${helper}「神様の方にはやるなよ」`],peace:['会話が通じた。','黒鯛を1匹持ち帰れる。ほかの釣果もそのまま。'],anger:['黒鯛を怒らせた！',`竿が折れた。${helper}の予備の竿ですぐ続けられる。強化は一段階下がったが、釣果は無事。`],release:['黒鯛を海へ戻した。','ほかの釣果と竿はそのまま。黒鯛は静かに帰っていった。'],'gamble-win':['強気の交渉が通じた！',`黒鯛2匹を持ち帰れる。${helper}「今日は、海の機嫌がよかったね」`]}[result.resolution];
   title=copy[0];html=`<div class="result ${result.resolution==='repel'?'repel-result':''}">${image(sprites.black_bream,'黒鯛')}<h3>${copy[0]}</h3><p>${copy[1]}</p><p>折られた竿：${s.rodBreakCount}本${s.rodBreakCount>=10?' · 次の黒鯛ではシバいて追い返せる！':` · あと${10-s.rodBreakCount}本で反撃のコツ`}</p>${result.gold?`<p>金塊の次の当たりは、${helper}も見てくれる。</p>`:''}<button id="result-ok" class="fish-btn">釣り場へ</button></div>`;log(copy[0]);
  }
  else {const it=BY_ID[result.id];title=result.critical?'クリティカル！':'釣れた！';html=`<div class="result">${result.first?'<span class="new-mark">はじめての釣果</span>':''}${result.critical?'<span class="new-mark">センタービタ賞 +5 G</span>':''}${image(sprites[it.id],it.name)}<h3>${it.name}</h3><p>${s.location==='berth'&&it.id==='gold'&&!s.berthGoldReady?'船長が待っていた重い釣果。まず見せよう。':it.desc}</p><p class="price">${it.price?it.price.toLocaleString('ja-JP')+' Gで売れる':'査定額：0 G'}</p>${it.id==='gold'&&s.location==='harbor'?'<button id="gold-sell-now" class="fish-btn">金塊を売りに行く</button><button id="result-ok" class="text-button">釣りを続ける</button>':'<button id="result-ok" class="fish-btn">釣り場へ</button>'}${it.id==='horse_mackerel'?'<button id="keep-aji" class="small-btn gold">このアジを生き餌用に残す</button>':''}${it.id==='starfish'?'<div class="row-buttons"><button id="release-starfish" class="small-btn">海へぽいっと戻す</button><button id="dry-starfish" class="small-btn">家で干す</button></div>':''}</div>`;log(`${it.name}を釣った。${it.price?it.price+'Gで売れる。':'……まあ、そんな日もある。'}`);effect(it.id==='gold'?'gold':'catch');}
- const done=()=>{setPhase('idle');if(s.location==='berth'&&result.id==='gold'&&!s.berthGoldReady)dialogue('berthGold',()=>{toast('おじさんと船長の船に同乗できるようになった！');});else if(s.location==='harbor'&&s.castCount<=3&&result.kind==='catch')dialogue(result.id);else if(s.location==='harbor'&&['friend1','shoreClue','friend2','goldRumor'].includes(availableStory(s)))dialogue(availableStory(s),()=>{if(availableStory(s)==='goldRumor')dialogue('goldRumor');});else if(s.location==='sea'&&result.id==='kue'&&!s.seaEnding)dialogue([['船長','そのクエが、岩礁の主への挨拶になる。'],['あなた','主？'],['隣のおじさん','最初の金塊の話が、ここにつながったね。売らずに1匹残しておきな。'],['船長','俺に話しかければ案内する。最後に返すかは、自分で決めていい。']]);};openModal(title,html,done);$('result-ok').onclick=closeModal;
+ const done=()=>{setPhase('idle');if(s.location==='berth'&&result.id==='gold'&&!s.berthGoldReady)dialogue('berthGold',()=>{toast('おじさんと船長の船に同乗できるようになった！');});else if(s.location==='harbor'&&s.castCount<=3&&result.kind==='catch')dialogue(result.id);else if(s.location==='harbor'&&['friend1','shoreClue','friend2','goldRumor'].includes(availableStory(s)))dialogue(availableStory(s),()=>{if(availableStory(s)==='goldRumor')dialogue('goldRumor');});else if(s.location==='sea'&&result.id==='kue'&&!s.seaEnding&&!s.readDialogueIds.includes('kueArrival')){readStory(s,'kueArrival');readStory(s,'kue');save();dialogue([['船長','見事だ。そのクエがいる潮筋の先に、金塊の噂が始まった岩礁がある。'],['隣のおじさん','最初のヒトデから、ずいぶん遠くへ来たね。'],['船長','準備ができたら「岩礁を調べる」を選びな。魚は売っても家へ持ち帰っても構わん。道は覚えた。']]);};};openModal(title,html,done);$('result-ok').onclick=closeModal;
  if($('release-starfish'))$('release-starfish').onclick=()=>{s.inventory.starfish=Math.max(0,(s.inventory.starfish||0)-1);save();toast(`ヒトデは海に帰った。${helper}「干されなくてよかったな」`);closeModal();};
  if($('keep-aji'))$('keep-aji').onclick=()=>{try{setPhase('idle');keepAji(s);s.settings.bait='live_aji';save();toast('アジ1匹を生き餌用に確保。次の一投で使えます。');closeModal();}catch(e){toast(e.message);}};
  if($('dry-starfish'))$('dry-starfish').onclick=()=>{try{setPhase('idle');dryStarfish(s);save();toast('ヒトデを家の保管箱で干した。');closeModal();}catch(e){toast(e.message);}};
@@ -205,7 +206,7 @@ requestAnimationFrame(frame);
 document.addEventListener('visibilitychange',()=>{lastFrame=0;if(document.hidden){save();audio?.suspend().catch(()=>{});}else if(s.settings.sound&&document.documentElement.classList.contains('game-ready'))audio?.resume().catch(()=>{});});
 window.addEventListener('pagehide',()=>{save();audio?.suspend().catch(()=>{});});
 $('talk').onclick=talkNow;
-function shopAction(fn,message){try{const result=fn();save();render();effect('coin');toast(typeof message==='function'?message(result):message);showShop();}catch(error){toast(error.message);}}
+function shopAction(fn,message){try{const result=fn();save();render();effect('coin');showShop();toast(typeof message==='function'?message(result):message);}catch(error){toast(error.message);}}
 function chosen(id,count){return Math.min(count,Math.max(1,quantities.get(id)||1));}
 function quantityRows(items,source='inventory',action='sell'){
  return items.map(it=>{const count=s[source][it.id],qty=chosen(it.id,count);return `<div class="item-row">${image(sprites[it.id],it.name)}<div class="item-info"><strong>${it.name} ×${count}</strong><small>${it.price} G / 個</small></div><div class="item-quantity"><input type="number" inputmode="numeric" min="1" max="${count}" step="1" value="${qty}" id="qty-${it.id}" aria-label="${it.name}の数量"><button class="small-btn" data-one="${it.id}">1個</button><button class="small-btn" data-all="${it.id}">全部</button><button class="small-btn ${it.price?'gold':''}" data-${action}="${it.id}">${action==='sell'?(it.price?'売る':'処分'):action==='deposit'?'家へ保管':'手元へ戻す'}</button><small class="item-total" id="total-${it.id}">${action==='sell'?`${qty}個 → ${(it.price*qty).toLocaleString()} G`:`${qty}個を移動`}</small>${action==='sell'&&it.id==='horse_mackerel'?'<button class="small-btn" id="reserve-aji">指定数を生き餌用に確保</button>':''}</div></div>`;}).join('');
@@ -217,27 +218,30 @@ function showShop(){
  if(phase!=='idle')return;if(s.location!=='harbor'){toast('波止場へ戻ってから、売買しよう。');return;}
  let html=`<p class="modal-desc">桟橋の買取箱。売る数を選ぶと、受取額も変わります。<br>所持金 <strong>${s.money.toLocaleString()} G</strong> · 生き餌のアジ ${s.liveBaitCount}匹</p><div class="tabbar"><button id="sell-tab" class="${shopTab==='sell'?'active':''}">売る・処分</button><button id="buy-tab" class="${shopTab==='buy'?'active':''}">買う</button></div>`;
  if(shopTab==='sell'){
-  const owned=ITEMS.filter(it=>s.inventory[it.id]>0);html+=owned.length?quantityRows(owned):'<p class="empty">手元に釣果がありません。家の保管箱から戻すこともできます。</p>';
-  if(owned.some(it=>it.price>0&&it.id!=='gold'))html+='<div class="row-buttons"><button id="sell-all" class="small-btn gold">金塊以外の換金品を全部売る</button></div><p class="modal-desc">生き餌用のアジと家の保管品は売りません。</p>';
+  const owned=ITEMS.filter(it=>s.inventory[it.id]>0);const total=owned.filter(it=>it.price>0&&it.id!=='gold').reduce((n,it)=>n+it.price*s.inventory[it.id],0);if(total)html+=`<button id="sell-bulk-top" class="small-btn gold bulk-top">まとめて売る · ${total.toLocaleString()} G</button><p class="modal-desc">金塊・家の保管品・生き餌用のアジは対象外。</p>`;html+=owned.length?quantityRows(owned):'<p class="empty">手元に釣果がありません。家の保管箱から戻すこともできます。</p>';
+
  }else{
   html+=`<div class="item-row"><div class="item-info"><strong>${['扱いやすい竿','なじんだ竿','大物用の竿','最高ランク'][s.rodLevel]}</strong><small>現在ランク ${s.rodLevel+1}/4。成功帯が広くなる。黒鯛で折れると一段階戻る</small></div><button data-buy="rod" class="small-btn gold" ${s.rodLevel>=3||s.money<ROD_PRICES[s.rodLevel]?'disabled':''}>${s.rodLevel>=3?'最高ランク':ROD_PRICES[s.rodLevel]+' G'}</button></div><h3 class="section-label">珍味の餌</h3><p class="modal-desc">基本の餌は無料。珍味の餌はおじさんと常連同士になると買えます。</p><div class="row-buttons"><button data-buy="bait1" class="small-btn" ${s.friendStage<2||s.money<8?'disabled':''}>1個 · 8 G</button><button data-buy="bait5" class="small-btn" ${s.friendStage<2||s.money<40?'disabled':''}>5個 · 40 G</button></div><h3 class="section-label">沖釣りの餌</h3><div class="row-buttons"><button data-buy="krill" class="small-btn" ${!canSail(s)||s.money<15?'disabled':''}>オキアミ3個 · 15 G</button><button data-buy="pork_fat" class="small-btn" ${!canSail(s)||s.money<25?'disabled':''}>豚の脂身3個 · 25 G</button></div><p>オキアミは沖でアジを狙いやすい。豚の脂身は沖のタコ用。</p><h3 class="section-label">アオリイカの生き餌</h3><p class="modal-desc">自分で釣ったアジを、売却画面で生き餌用に確保します。1投につき1匹使います。釣り場の餌メニューで選んでください。</p>`;
  }
  openModal('売る・買う',html);$('sell-tab').onclick=()=>{shopTab='sell';showShop();};$('buy-tab').onclick=()=>{shopTab='buy';showShop();};bindQuantities();
  document.querySelectorAll('[data-sell]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.sell,qty=Number($('qty-'+id).value),firstGold=id==='gold'&&!s.cleared;shopAction(()=>sell(s,id,qty),gain=>`${BY_ID[id].name} ${qty}個${gain?`を売って ${gain.toLocaleString()} G受け取った。`:'を処分した。'}`);if(firstGold&&s.cleared){modalCloseAction=null;$('modal').close();$('ending').hidden=false;syncMusic();}});
  if($('reserve-aji'))$('reserve-aji').onclick=()=>{const qty=Number($('qty-horse_mackerel').value);shopAction(()=>keepAji(s,qty),n=>`アジ${n}匹を生き餌用に確保した。`);};
- document.querySelectorAll('[data-buy]').forEach(btn=>btn.onclick=()=>shopAction(()=>buy(s,btn.dataset.buy),'買い物をした。'));
- if($('sell-all'))$('sell-all').onclick=()=>shopAction(()=>sellAll(s),gain=>`${gain.toLocaleString()} Gを受け取った。`);
+ document.querySelectorAll('[data-buy]').forEach(btn=>btn.onclick=()=>{const kind=btn.dataset.buy;shopAction(()=>buy(s,kind),price=>({rod:'竿を強化しました',bait1:'珍味の餌を1個購入',bait5:'珍味の餌を5個購入',krill:'オキアミを3個購入',pork_fat:'豚の脂身を3個購入'}[kind])+` · −${price} G／残金 ${s.money.toLocaleString()} G`);});
+ for(const id of ['sell-all','sell-bulk-top'])if($(id))$(id).onclick=confirmBulkSale;
 }
 function showStock(){
  if(phase!=='idle')return;if(s.location!=='harbor'){toast('波止場へ戻ると家の保管箱を使えます。');return;}
  const source=stockTab==='deposit'?'inventory':'homeInventory',action=stockTab==='deposit'?'deposit':'withdraw',owned=ITEMS.filter(it=>s[source][it.id]>0);
  const foodHtml='<h3>家で食事</h3>'+EDIBLE.filter(id=>s.homeInventory[id]>0).map(id=>`<button class="small-btn" data-eat="${id}" ${s.mealCasts?'disabled':''}>${BY_ID[id].name}を1個食べる</button>`).join('');
- openModal('家の保管箱',`<p class="modal-desc">ここに置いた釣果は、黒鯛との交渉に失敗しても残ります。保管した魚や海ぶどうを1個食べると、次の3投は成功帯が少し広くなります。効果の重ねがけはできません。</p><div class="home-tabs"><button id="stock-deposit" class="small-btn ${stockTab==='deposit'?'gold':''}">手元 → 家</button><button id="stock-withdraw" class="small-btn ${stockTab==='withdraw'?'gold':''}">家 → 手元</button></div>${owned.length?quantityRows(owned,source,action):'<p class="empty">この場所には釣果がありません。</p>'}${foodHtml}`);
+ openModal('家の保管箱',`<p class="modal-desc">売らずに残したい釣果を保管できます。保管した魚や海ぶどうを1個食べると、次の3投は成功帯が少し広くなります。効果の重ねがけはできません。</p><div class="home-tabs"><button id="stock-deposit" class="small-btn ${stockTab==='deposit'?'gold':''}">手元 → 家</button><button id="stock-withdraw" class="small-btn ${stockTab==='withdraw'?'gold':''}">家 → 手元</button></div>${owned.length?quantityRows(owned,source,action):'<p class="empty">この場所には釣果がありません。</p>'}${foodHtml}`);
  document.querySelectorAll('[data-eat]').forEach(btn=>btn.onclick=()=>{try{eatCatch(s,btn.dataset.eat);save();render();showStock();toast('食事でひと息。次の3投は成功帯が少し広がります。');}catch(e){toast(e.message);}});
  $('stock-deposit').onclick=()=>{stockTab='deposit';showStock();};$('stock-withdraw').onclick=()=>{stockTab='withdraw';showStock();};bindQuantities(source,action);
- document.querySelectorAll(`[data-${action}]`).forEach(btn=>btn.onclick=()=>{const id=btn.dataset[action];try{const qty=Number($('qty-'+id).value);storeCatch(s,id,qty,action==='withdraw');save();render();toast(`${BY_ID[id].name} ${qty}個を${action==='withdraw'?'手元へ戻した。':'家へ保管した。'}`);showStock();}catch(e){toast(e.message);}});
+ document.querySelectorAll(`[data-${action}]`).forEach(btn=>btn.onclick=()=>{const id=btn.dataset[action];try{const qty=Number($('qty-'+id).value);storeCatch(s,id,qty,action==='withdraw');save();render();showStock();toast(`${BY_ID[id].name} ${qty}個を${action==='withdraw'?'手元へ戻した。':'家へ保管した。'}`);}catch(e){toast(e.message);}});
 }
 $('home-stock').onclick=showStock;
+$('buy-shop').onclick=()=>{shopTab='buy';showShop();};
+function confirmBulkSale(){const items=ITEMS.filter(it=>it.id!=='gold'&&it.price>0&&s.inventory[it.id]>0),amount=items.reduce((n,it)=>n+it.price*s.inventory[it.id],0);openModal('まとめて売る',`<p>${items.map(it=>it.name+' ×'+s.inventory[it.id]).join('、')}</p><p class="price">合計 ${amount.toLocaleString()} G</p><p>残したい魚は先に家へ保管できます。</p><button id="bulk-confirm" class="small-btn gold">この釣果を売る</button><button id="bulk-cancel" class="small-btn">戻る</button>`);$('bulk-confirm').onclick=()=>shopAction(()=>sellAll(s),gain=>`${gain.toLocaleString()} Gを受け取った。`);$('bulk-cancel').onclick=showShop;}
+function showPocketItem(id){if(phase!=='idle')return;const it=BY_ID[id];openModal('手元の釣果',`<div class="result">${image(sprites[id],it.name)}<h3>${it.name} ×${s.inventory[id]||0}</h3><p>${it.desc}</p></div>${s.location==='harbor'?'<button id="pocket-sell" class="small-btn gold">売却画面へ</button><button id="pocket-store" class="small-btn">家に保管する</button>':'<p>帰港すると売却・保管ができます。</p>'}`);if($('pocket-sell'))$('pocket-sell').onclick=()=>{shopTab='sell';showShop();};if($('pocket-store'))$('pocket-store').onclick=()=>{stockTab='deposit';showStock();};}
 $('shop').onclick=()=>{if(s.location!=='harbor'){toast('波止場へ戻って、売買しよう。');return;}shopTab='sell';showShop();};
 function showBook(){if(phase!=='idle')return;openModal('釣果図鑑',`<p class="modal-desc">${s.discovered.filter(id=>BY_ID[id]&&!BY_ID[id].secret).length} / ${ITEMS.filter(it=>!it.secret).length} 種発見。${s.discovered.includes('sealed_book')?' ＋秘密の釣果1種。':''}売っても、リリースしても記録は残る。<br>折られた竿：${s.rodBreakCount}本${s.rodBreakCount>=10?' · 黒鯛への反撃を習得':''}<br>ヒトデの連続記録：${s.maxStarStreak}匹　センタービタ：${s.criticalCount}回</p><div class="book-grid">${ITEMS.filter(it=>!it.secret||s.discovered.includes(it.id)).map(it=>{const seen=s.discovered.includes(it.id);return `<article class="book-card ${seen?'':'locked'}">${image(sprites[it.id],seen?it.name:'未発見の釣果')}<h3>${seen?it.name:'？？？'}</h3><p>${seen?it.desc:'まだ出会っていない。'}</p><small>${seen?'釣った数：'+(s.catchCounts[it.id]||0)+'　'+it.price+' G':''}</small></article>`;}).join('')}</div>`);}
 $('book').onclick=showBook;
@@ -253,6 +257,8 @@ const portAction=setupPortAction({
 });
 function startPort(practice){
  if(phase!=='idle')return;
+ if(!practice&&s.portCleared){toast('港の騒動は解決しました。船着場へ進もう。');return;}
+ if(practice&&!canPractice(s)){toast('沖で3投ほど釣って帰ると、港の顔ぶれにも変化がありそう。');return;}
  if(!practice&&!knowsRumor(s)){toast('まず波止場でおじさんと親しくなり、金塊の噂を聞こう。');return;}
  modalCloseAction=null;$('modal').close();portPractice=practice;
  setPhase('action');portAction.open({practice,returnLabel:s.location==='sea'?'船上へ戻る':'釣り場へ戻る'});
@@ -260,13 +266,14 @@ function startPort(practice){
 function openPort(){
  if(phase!=='idle'){toast('今の釣りを終えると、アクションで遊べます。');return;}
  const first=knowsRumor(s)&&!s.portCleared&&s.location!=='sea';
- openModal('港の裏通り',`<p class="modal-desc">${s.portCleared?'一度抜けた道。もう通行は自由です。再挑戦では会話と操作説明を飛ばします。勝てばオキアミ、たまに賢者の餌も。':first?'金塊の噂が一人歩きしている。船長のいる船着場へ向かおう。短いアクションはこの物語で一度だけ。':'まずは波止場でおじさんと釣り、金塊の噂を聞こう。'}</p><div class="choice-list">${first?'<button id="port-story-start" class="small-btn gold">物語を進める：船長を探す</button>':s.portCleared?'<button id="port-free-start" class="small-btn gold">裏通りに再挑戦して餌をもらう</button>':''}<button id="port-reception" class="small-btn">船の受付を確認</button></div><p class="modal-desc">負けても釣果・所持金は減りません。</p>`);
+ openModal('港の裏通り',`<p class="modal-desc">${canPractice(s)?'一度抜けた道。もう通行は自由です。再挑戦では会話と操作説明を飛ばします。勝てばオキアミ、たまに賢者の餌も。':s.portCleared?'道をあけてくれた。船長が桟橋で待っている。':first?'金塊の噂が一人歩きしている。船長のいる船着場へ向かおう。短いアクションはこの物語で一度だけ。':'まずは波止場でおじさんと釣り、金塊の噂を聞こう。'}</p><div class="choice-list">${first?'<button id="port-story-start" class="small-btn gold">物語を進める：船長を探す</button>':canPractice(s)?'<button id="port-free-start" class="small-btn gold">裏通りに再挑戦して餌をもらう</button>':''}<button id="port-reception" class="small-btn">船の受付を確認</button></div><p class="modal-desc">負けても釣果・所持金は減りません。</p>`);
  if(first)$('port-story-start').onclick=()=>startPort(false);
  if($('port-free-start'))$('port-free-start').onclick=()=>startPort(true);
  $('port-reception').onclick=()=>voyage.menu();
 }
 $('port').onclick=openPort;
 const voyage=setupVoyage({getState:()=>s,modal:openModal,dialogue,commit:()=>{save();render();},close:()=>{modalCloseAction=null;$('modal').close();updateStoryNotice();},ending:showEndingIntro,toast,effect:name=>{soundInit();effect(name);}});
+$('reef-entry').onclick=()=>voyage.trial();
 $('voyage').onclick=()=>{if(phase!=='idle'){toast('今の釣りを終えてから受付へ進もう。');return;}try{voyage.menu();}catch(error){console.error('Voyage menu failed',error);toast('受付を開けませんでした。ページを再読み込みしてください。');}};
 window.addEventListener('game-maintenance',()=>{save();portAction.close();modalCloseAction=null;if($('modal').open)$('modal').close();phase='idle';elapsed=0;endingPreview=false;currentBlack=null;$('black-event').hidden=true;$('ending').hidden=true;$('true-ending').hidden=true;active=false;$('title-screen').hidden=false;music?.mute();audio?.suspend().catch(()=>{});});
 function showSettings(){if(phase!=='idle')return;openModal('釣り場の設定',`<div class="setting-row"><label for="set-sound">音を鳴らす<small>場面に合わせたBGM・波の音・効果音。</small></label><input id="set-sound" type="checkbox" ${s.settings.sound?'checked':''}></div><div class="setting-row"><label for="set-slow">ゆっくり釣り<small>合わせる時間を長く、目印をゆっくりに。釣果の確率は変わりません。</small></label><input id="set-slow" type="checkbox" ${s.settings.slow?'checked':''}></div><div class="setting-row"><label for="set-motion">水面の動き<small>ウキの揺れなどを表示します。</small></label><input id="set-motion" type="checkbox" ${s.settings.motion?'checked':''}></div><p class="modal-desc">「釣る」→ ウキが沈んだら「今！」→ 緑の帯で「引き上げる」。最初の3投は練習で、失敗しません。中央の金色で引くとクリティカルです。魚ごとに緑と金色の幅が変わります。<br><br>記録はこのブラウザに保存されます。別の端末とは共有されません。</p><div class="row-buttons"><button id="settings-backup" class="small-btn">バックアップ</button><button id="settings-restore" class="small-btn">セーブを復元</button></div><details class="test-tools"><summary>動作確認用（テスト版限定）</summary><p class="modal-desc">次の1投の獲物を指定できます。公開版の記録には入りません。海ぶどう・アジ・黒鯛・絵を待たずに確認できます。</p><div class="choice-list">${['sea_grapes','horse_mackerel','aori_squid','black_bream','gold','sandal','ballpen','octopus','kue'].map(id=>`<button class="small-btn" data-preview-catch="${id}">次の1投：${BY_ID[id].name}</button>`).join('')}<button id="test-sea" class="small-btn">船上の配置・会話を確認</button><button id="test-street" class="small-btn">港の場面をもう一度試す</button><button id="test-news" class="small-btn">おじさんの新しい話を確認</button><button id="test-rod-nine" class="small-btn">竿9本折れた状態を確認する</button><button id="test-ending" class="small-btn">真のエンディング演出を試す（記録は変えない）</button></div></details>${s.trueEndingSeen?'<button id="replay-true-ending" class="small-btn gold">真のエンディングをもう一度見る</button>':''}<button id="reset-ask" class="small-btn danger">記録を消して、はじめから</button>`);
@@ -298,17 +305,20 @@ function showRestore(){
 }
 $('title-backup').onclick=showBackup;$('title-restore').onclick=showRestore;$('save-menu').onclick=showBackup;
 $('settings').onclick=showSettings;
-function showEndingIntro(resume=false){setPhase('idle');if(resume){showTrueEnding();return;}dialogue('clear',showTrueEnding);}
-function showTrueEnding(preview=false){
+function showEndingIntro(resume=false){setPhase('idle');showTrueEnding(false,resume);}
+function showTrueEnding(preview=false,resume=false){
  if(!preview&&!s.seaEnding)return;
  endingPreview=preview;
  if(!preview){s.endingPending=true;save();}
  $('ending').hidden=true;$('true-ending-art').src=s.boatLevel===2?'test-v06-true_ending_upgrade.png':'test-v06-true_ending.png';$('true-ending').hidden=false;syncMusic();effect('gold');
- restartCredits();
+ const credits=resume&&s.creditsStarted;$('ending-story').hidden=credits;$('credits-window').hidden=!credits;$('credits-controls').hidden=!credits;if(credits)restartCredits();
 }
-function restartCredits(){const track=$('true-credits-track');track.style.animation='none';requestAnimationFrame(()=>{track.style.animation='';});}
+function restartCredits(){$('true-continue').hidden=true;$('true-title').hidden=true;$('credits-skip').hidden=false;const track=$('true-credits-track');track.style.animation='none';requestAnimationFrame(()=>{track.style.animation='';});}
+function finishCredits(){$('true-continue').hidden=false;$('true-title').hidden=false;$('credits-skip').hidden=true;}
+$('ending-to-credits').onclick=()=>{$('ending-story').hidden=true;$('credits-window').hidden=false;$('credits-controls').hidden=false;if(!endingPreview){s.creditsStarted=true;save();}restartCredits();};
+$('credits-skip').onclick=finishCredits;$('true-credits-track').addEventListener('animationend',finishCredits);
 function finishTrueEnding(toTitle){
- if(!endingPreview){s.endingPending=false;s.trueEndingSeen=true;s.location='harbor';save();}
+ if(!endingPreview){s.endingPending=false;s.creditsStarted=false;s.trueEndingSeen=true;s.location='harbor';save();}
  const wasPreview=endingPreview;endingPreview=false;$('true-ending').hidden=true;
  if(toTitle){active=false;$('title-screen').hidden=false;$('start').textContent='つづきから釣る';}
  render();syncMusic();if(!toTitle&&!wasPreview)dialogue('after');
@@ -322,7 +332,7 @@ function status(){return {phase,money:s.money,castCount:s.castCount,friendship:F
 if(document.modelContext?.registerTool){try{Promise.resolve(document.modelContext.registerTool({name:'get_fishing_status',title:'釣りの記録を見る',description:'現在の所持金、釣果、交流段階、クリア状況を読み取ります。釣りや売却は実行しません。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute(input){if(input&&Object.keys(input).length)throw Error('入力は空のオブジェクトにしてください。');return status();}})).catch(()=>{});}catch{}}
 try{assets();}catch(error){
  console.error('Fishing startup failed',startupStep,error);
- const detail='v0.7.1-test1 / '+startupStep+' / '+(error?.name||'Error')+': '+(error?.message||String(error));
+ const detail='v0.7.2-test1 / '+startupStep+' / '+(error?.name||'Error')+': '+(error?.message||String(error));
  $('startup-error').textContent=detail;$('startup-error').hidden=false;
  $('start').disabled=false;$('start').textContent='読み込みをやり直す';$('start').onclick=()=>location.reload();
  log(detail);

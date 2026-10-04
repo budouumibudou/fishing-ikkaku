@@ -17,7 +17,7 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
  function reset(){
   player={x:110,y:0,vy:0,face:1,hp:6,invuln:0,punchCd:0,punchTime:0};
   enemies=roster.map(e=>({...e,maxHp:e.hp,cd:0,stun:0,active:false,dead:false}));
-  finished=false;won=false;score=0;last=0;damageFlash=0;clearControls();narrative=false;document.getElementById('port-story').hidden=true;
+  document.getElementById('port-retry').hidden=false;finished=false;won=false;score=0;last=0;damageFlash=0;clearControls();narrative=false;document.getElementById('port-story').hidden=true;
   document.getElementById('port-result').hidden=true;
   status.textContent='← → 移動　ジャンプで避けて、パンチで進もう。';
  }
@@ -54,7 +54,7 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
   
  }
  function win(){
-  finished=true;won=true;clearControls();
+  finished=true;won=true;clearControls();document.getElementById('port-retry').hidden=!practice;
   status.textContent=practice?'3人撃退！ もう一度挑戦できます。':'船着場への道が開いた！';
   document.getElementById('port-exit').textContent=practice?returnLabel:'船着場へ';
   const reward=onWin?.()||'港を突破した！';
@@ -175,7 +175,7 @@ export function setupPortAction({onWin,onClose,onPunch,onExitWin}){
   button.onclick=e=>{if(e.detail===0)fn();};
  }
  document.getElementById('port-close').onclick=close;
- document.getElementById('port-retry').onclick=()=>{reset();fitCanvas();};
+ document.getElementById('port-retry').onclick=()=>{if(won&&!practice)return;reset();fitCanvas();};
  document.getElementById('port-exit').onclick=()=>{const toReception=won;close();if(toReception)onExitWin?.();};
  document.addEventListener('keydown',e=>{
   if(!open||narrative||finished)return;

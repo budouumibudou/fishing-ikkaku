@@ -1,6 +1,6 @@
-import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.7.1-test1';
+import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.7.2-test1';
 export const STORAGE_KEY='fishing-ikkaku-v1';
-export function fresh(){return {schemaVersion:2,storyVersion:3,voyageVersion:1,portWins:0,krillCount:0,sageCount:0,sagePity:0,fatCount:0,octopusAttempts:0,mealCasts:0,youngStage:0,neighborStage:0,location:'harbor',seaCasts:0,berthCasts:0,berthGoldReady:false,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,trueEndingSeen:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
+export function fresh(){return {schemaVersion:2,storyVersion:3,voyageVersion:1,deityPending:false,creditsStarted:false,portWins:0,krillCount:0,sageCount:0,sagePity:0,fatCount:0,octopusAttempts:0,mealCasts:0,youngStage:0,neighborStage:0,location:'harbor',seaCasts:0,berthCasts:0,berthGoldReady:false,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,trueEndingSeen:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
 const counts=['portWins','krillCount','sageCount','sagePity','fatCount','octopusAttempts','mealCasts','youngStage','neighborStage','money','baitCount','liveBaitCount','squidAttempts','rodLevel','boatLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','rodBreakCount','starStreak','maxStarStreak','seaCasts','berthCasts'];
 export function hydrate(raw){
  if(!raw||typeof raw!=='object'||![1,2].includes(raw.schemaVersion))throw Error('このセーブ形式は読み込めません。元のデータは残しています。');
@@ -12,7 +12,7 @@ export function hydrate(raw){
   for(const [id,n] of Object.entries(raw[key]||{})){if(!BY_ID[id])throw Error('この版にない釣果を含んでいます：'+id);if(!Number.isSafeInteger(n)||n<0)throw Error('所持数が正しくありません。');s[key][id]=n;}
  }
  for(const key of ['discovered','readDialogueIds','pendingDialogueIds'])if(Array.isArray(raw[key]))s[key]=[...new Set(raw[key].filter(x=>typeof x==='string'))];
- for(const key of ['cleared','endingPending','goldRecoveryMode','portCleared','berthGoldReady','seaIntroRead','license','boat','seaEnding','trueEndingSeen'])s[key]=raw[key]===true;
+ for(const key of ['cleared','endingPending','goldRecoveryMode','portCleared','berthGoldReady','seaIntroRead','license','boat','seaEnding','trueEndingSeen','deityPending','creditsStarted'])s[key]=raw[key]===true;
  // Older saves only had a yes/no boat flag. Keep the purchased boat and its cost.
  s.boatLevel=Math.min(2,s.boatLevel);if(s.boat&&s.boatLevel===0)s.boatLevel=1;
  s.boat=s.boatLevel>0;
@@ -28,6 +28,8 @@ export function hydrate(raw){
   // Players who actually reached the old sea keep their unlocked voyage.
   if(raw.seaIntroRead||raw.location==='sea'||s.seaCasts>0||s.seaEnding)s.berthGoldReady=true;
  }
+ if(!s.catchCounts.kue&&(s.inventory.kue>0||s.homeInventory.kue>0||s.discovered.includes('kue')))s.catchCounts.kue=1;
+ s.pendingDialogueIds=s.pendingDialogueIds.filter(id=>id!=='recovery');
  s.portWins=Math.max(s.portWins,s.portCleared?1:0);s.mealCasts=Math.min(3,s.mealCasts);s.youngStage=Math.min(2,s.youngStage);s.neighborStage=Math.min(2,s.neighborStage);
  s.location=raw.location==='sea'&&canSail(s)?'sea':raw.location==='berth'&&canVisitBerth(s)?'berth':'harbor';return s;
 }
@@ -69,6 +71,7 @@ export function beginCast(s,rng=Math.random){
  }else if(s.castCount<3){id=['starfish','puffer','mushroom'][s.castCount];safe=true;}
  else if(s.location==='harbor'&&s.castCount===3&&!s.discovered.includes('sea_grapes')){id='sea_grapes';safe=true;}
  else if(s.location==='harbor'&&s.castCount===4){id='ballpen';safe=true;}
+ else if(s.location==='harbor'&&s.castCount>=11&&!s.discovered.includes('grapes')){id='grapes';safe=true;}
  else if(eligible&&s.goldPityCount>=(s.goldRecoveryMode?5:20)){id='gold';safe=true;}
  else if(s.location==='sea'){
   const boatLevel=s.boatLevel||0;
@@ -98,12 +101,11 @@ export function resolveBlackBream(s,choice,rng=Math.random){
  if(choice==='anger'&&s.pendingBlack.protected)choice='release';
  if(choice==='gamble'&&s.pendingBlack.protected)throw Error('初めての会話では強気の交渉はできません。');
  if(choice==='repel'&&s.rodBreakCount<10)throw Error('まだ黒鯛をシバくコツはつかめていません。');
- const failed=choice==='gamble'&&rng()<.5;const lost=failed?Object.entries(s.inventory).filter(([,n])=>n>0):[];const gold=lost.some(([id])=>id==='gold');
+ const failed=choice==='gamble'&&rng()<.5;const lost=[],gold=false;
  s.pendingBlack=null;
- if(failed){s.inventory={};s.liveBaitCount=0;if(gold&&!s.cleared){s.goldRecoveryMode=true;s.goldPityCount=0;queue(s,'recovery');}}
  if(choice==='anger'||failed){s.rodLevel=Math.max(0,s.rodLevel-1);s.rodBreakCount++;}if(choice==='repel')s.blackBreamCooldown=8;
  if(choice==='peace'||(choice==='gamble'&&!failed))s.inventory.black_bream=(s.inventory.black_bream||0)+(choice==='gamble'?2:1);
- return {kind:'black',resolution:choice==='gamble'?(failed?'alllost':'gamble-win'):choice,lost,gold};
+ return {kind:'black',resolution:choice==='gamble'?(failed?'anger':'gamble-win'):choice,lost,gold};
 }
 function quantity(s,id,qty,source='inventory'){if(!BY_ID[id]||!Number.isSafeInteger(qty)||qty<1||(s[source][id]||0)<qty)throw Error('所持数の範囲で個数を指定してください。');}
 function idle(s){if(s.pendingCast||s.pendingBlack)throw Error('今の釣りを終えてからにしよう。');}
@@ -118,9 +120,13 @@ export function buy(s,kind){idle(s);let price;if(kind==='rod'){if(s.rodLevel>=3)
 export function knowsRumor(s){return s.readDialogueIds.includes('goldRumor');}
 export function canVisitBerth(s){return s.friendStage>=2&&knowsRumor(s)&&s.portCleared;}
 export function canSail(s){return canVisitBerth(s)&&s.berthGoldReady;}
+export function canPractice(s){return s.portCleared&&s.seaCasts>=3;}
+export function canMeetDeity(s){return canSail(s)&&s.location==='sea'&&(s.catchCounts.kue||0)>0&&!s.seaEnding;}
 export function portVictory(s,practice=false,rng=Math.random){
  idle(s);
  if(!practice&&!knowsRumor(s))throw Error('まず波止場で金塊の噂を聞こう。');
+ if(!practice&&s.portCleared)throw Error('物語の騒動は解決済みです。');
+ if(practice&&!canPractice(s))throw Error('沖釣りを経験してから、港に戻ろう。');
  if(!practice&&!s.portCleared){s.portCleared=true;s.portWins++;s.money+=80;queue(s,'voyageInvite');return '港の騒動を突破！ 80 Gを獲得。警官「誤解だった。船長は桟橋の先だ。次からは顔パスでいい」';}
  if(!s.portCleared)return '3人を撃退！ 練習完了。物語は波止場から進めよう。';
  s.portWins++;s.krillCount+=3;s.sagePity++;
@@ -131,4 +137,4 @@ export function portVictory(s,practice=false,rng=Math.random){
 }
 export const EDIBLE=['horse_mackerel','mackerel','red_seabream','kue','aori_squid','octopus','sea_grapes'];
 export function eatCatch(s,id){idle(s);if(s.location!=='harbor')throw Error('食事は帰港して家で。');if(!EDIBLE.includes(id))throw Error('これは食事にできません。');if(s.mealCasts>0)throw Error('食事の効果が残っています。あと'+s.mealCasts+'投。');quantity(s,id,1,'homeInventory');s.homeInventory[id]--;s.mealCasts=3;return 3;}
-export function voyageAction(s,kind){idle(s);if(kind==='harbor'){s.location='harbor';return;}if(kind==='berth'){if(!canVisitBerth(s))throw Error('おじさんと常連同士になり、金塊の噂を聞いて裏通りを越えよう。');s.location='berth';return;}if(!canSail(s))throw Error(!knowsRumor(s)?'波止場でおじさんと親しくなり、金塊の噂を聞こう。':!s.portCleared?'裏通りで船長を探そう。':'船着場で金塊を釣り、船長に見せよう。');if(kind==='sea'){s.location='sea';s.seaIntroRead=true;}else if(kind==='license'){if(s.license)throw Error('免許は取得済み。');if(s.seaCasts<5)throw Error('まずは同乗で5投、経験を積もう。');if(s.money<1000)throw Error('講習費は1,000 G。');s.money-=1000;s.license=true;}else if(kind==='boat'||kind==='boatUpgrade'){if(s.location!=='harbor')throw Error('船の購入と改装は、帰港してから受付で行えます。');if(!s.license)throw Error('自分で操縦するには、先に免許を取ろう。');const level=s.boatLevel||0;if(kind==='boat'&&level!==0)throw Error('船は購入済み。改装は受付で選べます。');if(kind==='boatUpgrade'&&level!==1)throw Error('改装には自分の船が必要です。');const price=BOAT_PRICES[level];if(s.money<price)throw Error('船の費用が足りません。');s.money-=price;s.boatLevel=level+1;s.boat=true;}else if(kind==='offering'){if(s.seaEnding||s.location!=='sea')throw Error('沖へ出てからにしよう。');if(!(s.inventory.kue>0))throw Error('手元にクエを1匹残しておこう。');s.inventory.kue--;s.seaEnding=true;s.endingPending=true;}else throw Error('その行動はできません。');}
+export function voyageAction(s,kind){idle(s);if(kind==='harbor'){s.location='harbor';return;}if(kind==='berth'){if(!canVisitBerth(s))throw Error('おじさんと常連同士になり、金塊の噂を聞いて裏通りを越えよう。');s.location='berth';return;}if(!canSail(s))throw Error(!knowsRumor(s)?'波止場でおじさんと親しくなり、金塊の噂を聞こう。':!s.portCleared?'裏通りで船長を探そう。':'船着場で金塊を釣り、船長に見せよう。');if(kind==='sea'){s.location='sea';s.seaIntroRead=true;}else if(kind==='license'){if(s.license)throw Error('免許は取得済み。');if(s.seaCasts<5)throw Error('まずは同乗で5投、経験を積もう。');if(s.money<1000)throw Error('講習費は1,000 G。');s.money-=1000;s.license=true;}else if(kind==='boat'||kind==='boatUpgrade'){if(s.location!=='harbor')throw Error('船の購入と改装は、帰港してから受付で行えます。');if(!s.license)throw Error('自分で操縦するには、先に免許を取ろう。');const level=s.boatLevel||0;if(kind==='boat'&&level!==0)throw Error('船は購入済み。改装は受付で選べます。');if(kind==='boatUpgrade'&&level!==1)throw Error('改装には自分の船が必要です。');const price=BOAT_PRICES[level];if(s.money<price)throw Error('船の費用が足りません。');s.money-=price;s.boatLevel=level+1;s.boat=true;}else if(kind==='offering'){if(s.seaEnding||s.location!=='sea')throw Error('沖へ出てからにしよう。');if(!(s.catchCounts.kue>0))throw Error('沖でクエを釣ると、岩礁への道が分かります。');s.deityPending=false;s.seaEnding=true;s.endingPending=true;s.creditsStarted=false;}else throw Error('その行動はできません。');}

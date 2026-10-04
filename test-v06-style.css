@@ -105,3 +105,25 @@ dialog{max-height:88dvh;overscroll-behavior:contain} .title-screen{padding-botto
 body.reduce-motion .true-credits-window{overflow:auto;mask-image:none;-webkit-mask-image:none}body.reduce-motion .true-credits-track{position:relative;top:auto;animation:none!important}
 
 .challenge-meter{position:relative;height:42px;background:#071f2d;border:2px solid #8baeb5;margin:24px 0;overflow:hidden}.challenge-safe{position:absolute;left:28%;width:44%;height:100%;background:#407d67}.challenge-critical{position:absolute;left:45%;width:10%;height:100%;background:#f4d67b}#challenge-needle{position:absolute;top:0;bottom:0;width:4px;background:#fff;transform:translateX(-2px)}#record-name{display:block;width:100%;padding:12px;font:inherit;margin:12px 0}
+/* v0.7.2: visible feedback, compact navigation, safe on-deck companion */
+[hidden]{display:none!important}
+dialog[open]{display:flex;flex-direction:column;overflow:hidden;max-height:88dvh}
+.modal-head{flex-shrink:0}
+#modal-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.modal-feedback{flex-shrink:0;margin-top:12px;padding:12px;border:1px solid #f1d183;border-radius:8px;background:#f4dfaa;color:#163746;font-weight:700;line-height:1.6;font-size:14px}
+#pocket-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.pocket-item{min-width:0;border:1px solid #658b99;border-radius:9px;background:#123e50;color:#f7edce;padding:8px 4px;font-size:12px}
+.pocket-item img{display:block;width:100%;height:68px;object-fit:contain;image-rendering:pixelated;margin-bottom:4px}
+.bulk-top{width:100%;margin:12px 0}
+.at-sea .sea-uncle{left:26%;top:33%;width:9.5%;height:20%;object-fit:contain;filter:none}
+.at-berth .scene:after{display:none}
+.at-berth .player{left:36%;bottom:32%;height:27%}
+.at-berth .fishing-line{display:none}
+.at-berth .bobber{left:68%;top:65%}
+.at-berth .ripple{left:68%;top:72%}
+.ending-story{position:absolute;z-index:2;top:20%;bottom:6%;left:7%;right:7%;overflow:auto;max-width:720px;margin:auto;text-align:center;background:#082b3eaa;border-radius:12px;padding:16px;line-height:1.9;font-size:clamp(14px,2.4vw,20px)}
+.ending-story p{margin:0 0 18px}
+#reef-entry{width:100%;margin-bottom:8px}
+@media(orientation:landscape) and (max-height:600px){.ending-story{top:25%;bottom:4%;font-size:14px}.ending-story p{margin-bottom:12px}dialog[open]{max-height:calc(100dvh - 24px)}}
+/* Keep optional conversations and other anglers reachable in portrait too. */
+.menu-open{display:block;width:100%;margin-top:12px}
