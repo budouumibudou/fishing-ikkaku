@@ -1,7 +1,7 @@
-import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.7.2-test1';
+import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.7.3-test1';
 export const STORAGE_KEY='fishing-ikkaku-v1';
-export function fresh(){return {schemaVersion:2,storyVersion:3,voyageVersion:1,deityPending:false,creditsStarted:false,portWins:0,krillCount:0,sageCount:0,sagePity:0,fatCount:0,octopusAttempts:0,mealCasts:0,youngStage:0,neighborStage:0,location:'harbor',seaCasts:0,berthCasts:0,berthGoldReady:false,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,trueEndingSeen:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
-const counts=['portWins','krillCount','sageCount','sagePity','fatCount','octopusAttempts','mealCasts','youngStage','neighborStage','money','baitCount','liveBaitCount','squidAttempts','rodLevel','boatLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','rodBreakCount','starStreak','maxStarStreak','seaCasts','berthCasts'];
+export function fresh(){return {schemaVersion:2,storyVersion:3,voyageVersion:1,actOneVersion:1,actOneSeen:false,actOnePending:false,goldBridgePending:false,breamRepelCount:0,deityPending:false,creditsStarted:false,portWins:0,krillCount:0,sageCount:0,sagePity:0,fatCount:0,octopusAttempts:0,mealCasts:0,youngStage:0,neighborStage:0,location:'harbor',seaCasts:0,berthCasts:0,berthGoldReady:false,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,trueEndingSeen:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
+const counts=['breamRepelCount','portWins','krillCount','sageCount','sagePity','fatCount','octopusAttempts','mealCasts','youngStage','neighborStage','money','baitCount','liveBaitCount','squidAttempts','rodLevel','boatLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','rodBreakCount','starStreak','maxStarStreak','seaCasts','berthCasts'];
 export function hydrate(raw){
  if(!raw||typeof raw!=='object'||![1,2].includes(raw.schemaVersion))throw Error('このセーブ形式は読み込めません。元のデータは残しています。');
  const s=fresh();
@@ -12,7 +12,7 @@ export function hydrate(raw){
   for(const [id,n] of Object.entries(raw[key]||{})){if(!BY_ID[id])throw Error('この版にない釣果を含んでいます：'+id);if(!Number.isSafeInteger(n)||n<0)throw Error('所持数が正しくありません。');s[key][id]=n;}
  }
  for(const key of ['discovered','readDialogueIds','pendingDialogueIds'])if(Array.isArray(raw[key]))s[key]=[...new Set(raw[key].filter(x=>typeof x==='string'))];
- for(const key of ['cleared','endingPending','goldRecoveryMode','portCleared','berthGoldReady','seaIntroRead','license','boat','seaEnding','trueEndingSeen','deityPending','creditsStarted'])s[key]=raw[key]===true;
+ for(const key of ['actOneSeen','actOnePending','goldBridgePending','cleared','endingPending','goldRecoveryMode','portCleared','berthGoldReady','seaIntroRead','license','boat','seaEnding','trueEndingSeen','deityPending','creditsStarted'])s[key]=raw[key]===true;
  // Older saves only had a yes/no boat flag. Keep the purchased boat and its cost.
  s.boatLevel=Math.min(2,s.boatLevel);if(s.boat&&s.boatLevel===0)s.boatLevel=1;
  s.boat=s.boatLevel>0;
@@ -29,6 +29,14 @@ export function hydrate(raw){
   if(raw.seaIntroRead||raw.location==='sea'||s.seaCasts>0||s.seaEnding)s.berthGoldReady=true;
  }
  if(!s.catchCounts.kue&&(s.inventory.kue>0||s.homeInventory.kue>0||s.discovered.includes('kue')))s.catchCounts.kue=1;
+ // Old records keep their progress: no retroactive joke ending or item requirement.
+ if(raw.actOneVersion!==1){
+  const hadGold=s.discovered.includes('gold')||(s.catchCounts.gold||0)>0||s.inventory.gold>0||s.homeInventory.gold>0||s.cleared||s.berthGoldReady;
+  s.actOneSeen=hadGold||s.seaEnding||s.trueEndingSeen;
+  s.goldBridgePending=hadGold&&!s.seaEnding&&!s.trueEndingSeen;
+  s.actOnePending=false;
+ }
+ if(s.seaEnding||s.trueEndingSeen){s.actOneSeen=true;s.actOnePending=false;s.goldBridgePending=false;}
  s.pendingDialogueIds=s.pendingDialogueIds.filter(id=>id!=='recovery');
  s.portWins=Math.max(s.portWins,s.portCleared?1:0);s.mealCasts=Math.min(3,s.mealCasts);s.youngStage=Math.min(2,s.youngStage);s.neighborStage=Math.min(2,s.neighborStage);
  s.location=raw.location==='sea'&&canSail(s)?'sea':raw.location==='berth'&&canVisitBerth(s)?'berth':'harbor';return s;
@@ -93,7 +101,7 @@ export function completeCast(s,success,critical=false){
  const id=cast.id,first=!s.discovered.includes(id);if(first){s.discovered.push(id);queue(s,id);}s.catchCounts[id]=(s.catchCounts[id]||0)+1;
  if(critical)s.criticalCount++;s.starStreak=id==='starfish'?s.starStreak+1:0;s.maxStarStreak=Math.max(s.maxStarStreak,s.starStreak);
  if(id==='black_bream'){s.blackBreamCooldown=4;s.pendingBlack={kind:'black',critical,protected:s.catchCounts[id]===1};return {...s.pendingBlack,first};}
- s.inventory[id]=(s.inventory[id]||0)+1;if(id==='gold'){s.goldPityCount=0;s.goldRecoveryMode=false;}if(id==='aori_squid')s.squidAttempts=0;if(id==='octopus')s.octopusAttempts=0;
+ s.inventory[id]=(s.inventory[id]||0)+1;if(id==='gold'){s.goldPityCount=0;s.goldRecoveryMode=false;if(!s.actOneSeen&&!s.seaEnding&&!s.trueEndingSeen)s.actOnePending=true;}if(id==='aori_squid')s.squidAttempts=0;if(id==='octopus')s.octopusAttempts=0;
  const bonus=critical?5:0;s.money+=bonus;return {kind:'catch',id,first,critical,bonus};
 }
 export function resolveBlackBream(s,choice,rng=Math.random){
@@ -103,13 +111,13 @@ export function resolveBlackBream(s,choice,rng=Math.random){
  if(choice==='repel'&&s.rodBreakCount<10)throw Error('まだ黒鯛をシバくコツはつかめていません。');
  const failed=choice==='gamble'&&rng()<.5;const lost=[],gold=false;
  s.pendingBlack=null;
- if(choice==='anger'||failed){s.rodLevel=Math.max(0,s.rodLevel-1);s.rodBreakCount++;}if(choice==='repel')s.blackBreamCooldown=8;
+ if(choice==='anger'||failed){s.rodLevel=Math.max(0,s.rodLevel-1);s.rodBreakCount++;}if(choice==='repel'){s.blackBreamCooldown=8;s.breamRepelCount++;}
  if(choice==='peace'||(choice==='gamble'&&!failed))s.inventory.black_bream=(s.inventory.black_bream||0)+(choice==='gamble'?2:1);
  return {kind:'black',resolution:choice==='gamble'?(failed?'anger':'gamble-win'):choice,lost,gold};
 }
 function quantity(s,id,qty,source='inventory'){if(!BY_ID[id]||!Number.isSafeInteger(qty)||qty<1||(s[source][id]||0)<qty)throw Error('所持数の範囲で個数を指定してください。');}
 function idle(s){if(s.pendingCast||s.pendingBlack)throw Error('今の釣りを終えてからにしよう。');}
-export function sell(s,id,qty=1){idle(s);quantity(s,id,qty);const gain=BY_ID[id].price*qty;s.inventory[id]-=qty;s.money+=gain;if(id==='gold'&&!s.cleared){s.cleared=true;s.endingPending=false;queue(s,'gold');}return gain;}
+export function sell(s,id,qty=1){idle(s);quantity(s,id,qty);const gain=BY_ID[id].price*qty;s.inventory[id]-=qty;s.money+=gain;if(id==='gold'&&!s.cleared){s.cleared=true;queue(s,'gold');}return gain;}
 export function sellAll(s){let total=0;for(const it of ITEMS)if(it.id!=='gold'&&it.price>0&&(s.inventory[it.id]||0)>0)total+=sell(s,it.id,s.inventory[it.id]);return total;}
 export function keepAji(s,qty=1){idle(s);quantity(s,'horse_mackerel',qty);s.inventory.horse_mackerel-=qty;s.liveBaitCount+=qty;return qty;}
 export function storeCatch(s,id,qty=1,withdraw=false){idle(s);const source=withdraw?'homeInventory':'inventory',dest=withdraw?'inventory':'homeInventory';quantity(s,id,qty,source);s[source][id]-=qty;s[dest][id]=(s[dest][id]||0)+qty;return qty;}

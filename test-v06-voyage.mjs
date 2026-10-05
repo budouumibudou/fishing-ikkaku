@@ -1,4 +1,4 @@
-import {voyageAction,BOAT_PRICES,canVisitBerth,canSail,knowsRumor,canMeetDeity} from './test-v06-core.mjs?v=0.7.2-test1';
+import {voyageAction,BOAT_PRICES,canVisitBerth,canSail,knowsRumor,canMeetDeity} from './test-v06-core.mjs?v=0.7.3-test1';
 export const SEA_SPRITES={horse_mackerel:'test-v06-horse_mackerel.png',mackerel:'test-v06-mackerel.png',red_seabream:'test-v06-red_seabream.png',kue:'test-v06-kue.png'};
 export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,effect=()=>{}}){
  const $=id=>document.getElementById(id);
@@ -39,7 +39,13 @@ export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,e
   $('god-history').onclick=()=>{s.deityPending=true;commit();history();};
  }
  function history(){
-  dialogue([['チヌ神','昔、この港の者たちは金を海に沈めた。大漁も幸運も、金で買えると思っていた。'],['あなた','それが、あの金塊……。では、サンダルやボールペンも？'],['チヌ神','あれは落とし物だ。神なら何でも説明できると思うでない。'],['隣のおじさん','ぶどうまで流れてくるからねえ。海は広いよ。'],['船長','金の噂が人づてにふくらんで、裏通りは大騒ぎだった。だが、お前が来て顔の見える付き合いに戻った。'],['チヌ神','金を釣りに来たお前は、ほかに何を手にした？'],['あなた','釣り方を教えてくれる人。釣れない日も、一緒に笑ってくれる人。'],['隣のおじさん','なら、明日も隣を空けておこう。'],['あなた','もっと欲しい、ばかりだった気持ちは、ここに置いて帰ります。'],['チヌ神','よかろう。持ち帰った魚も金も、お前の暮らしに使え。海には、また会いに来ればいい。'],['船長','さあ、みんなで港へ帰ろう。']],()=>{if(act('offering')){close();ending();}},true);
+  const s=getState();
+  const lines=[['チヌ神','うちの若いもんが、世話になったようじゃな。黒鯛たちは、ここに沈んだ供え物を見回っておる。']];
+  if(s.rodBreakCount>0)lines.push(['チヌ神','竿を'+s.rodBreakCount+'本も折ったそうで。若いもんは、加減を知らん。']);
+  if(s.breamRepelCount>0)lines.push(['チヌ神','……その若いもんをシバいたのは、お前さんじゃな。互いにほどほどにせい。']);
+  lines.push(['チヌ神','昔、この港の者たちは豊漁を願って金を沈めた。供え物はな……正直、嬉しかった。'],['あなた','それが、あの金塊……。では、サンダルやボールペンも？'],['チヌ神','あれは落とし物だ。神なら何でも説明できると思うでない。'],['隣のおじさん','ぶどうまで流れてくるからねえ。海は広いよ。'],['船長','金の噂で裏通りは大騒ぎだった。クエの潮筋をたどって、ようやくここへ来られたな。'],['チヌ神','金を釣りに来たお前は、ほかに何を手にした？'],['あなた','釣り方を教えてくれる人。釣れない日も、一緒に笑ってくれる人。'],['チヌ神','供えた者はもうおらん。金は持っていけ。お前の暮らしに使うがよい。'],['あなた','一獲千金できたのに、明日も釣りに来たいんです。'],['隣のおじさん','なら、明日も隣を空けておこう。'],['船長','さあ、みんなで港へ帰ろう。']);
+  dialogue(lines,()=>{if(act('offering')){close();ending();}},true);
+
  }
  return {menu,trial};
 }
