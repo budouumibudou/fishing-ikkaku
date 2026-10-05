@@ -1,4 +1,4 @@
-import {voyageAction,BOAT_PRICES,canVisitBerth,canSail,knowsRumor,canMeetDeity} from './test-v06-core.mjs?v=0.7.4-test1';
+import {voyageAction,BOAT_PRICES,canVisitBerth,canSail,knowsRumor,canMeetDeity} from './test-v06-core.mjs?v=0.7.5-test1';
 export const SEA_SPRITES={horse_mackerel:'test-v06-horse_mackerel.png',mackerel:'test-v06-mackerel.png',red_seabream:'test-v06-red_seabream.png',kue:'test-v06-kue.png'};
 export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,effect=()=>{}}){
  const $=id=>document.getElementById(id);
@@ -16,21 +16,25 @@ export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,e
   }
   let html=`<p class="modal-desc">船長「${s.location==='sea'?'いい潮だ。岩礁が気になるかい？　帰りたくなったら声をかけな。':'救命胴衣は用意した。おじさんも一緒だ。沖へ行こうか。'}」</p><p>所持金 ${s.money.toLocaleString()} G</p><p class="modal-desc">免許：${s.license?'取得済み':'未取得'} · 船：${s.boatLevel===2?'一獲丸・豪華改装済み':s.boatLevel===1?'自船・一獲丸':'船長の船に同乗'}</p><div class="choice-list">`;
   html+=button('voyage-travel',s.location==='sea'?'波止場へ帰港する':s.boat?'一獲丸で出航する':'船長の船に同乗する · 無料');
+  if(s.boatLevel===2)html+=button('voyage-bluewater',s.fishingGround==='bluewater'&&s.location==='sea'?'沖の潮目で釣り中':'改装船だけの漁場 · 沖の潮目へ',s.fishingGround==='bluewater'&&s.location==='sea');
+  if(s.location==='sea'&&s.fishingGround==='bluewater')html+=button('voyage-reef','いつもの岩礁へ戻る');
   if(canMeetDeity(s))html+=button('voyage-god','岩礁を調べる · 金塊の噂の先へ');
   if(s.location!=='berth')html+=button('voyage-berth','船着場に寄る');
   if(s.location==='berth')html+=button('voyage-shore','波止場へ戻る');
   if(!s.license)html+=button('voyage-license',s.seaCasts<5?'操船免許 · 同乗であと'+(5-s.seaCasts)+'投':'操船免許を取る · 合格時1,000 G',s.seaCasts<5||s.money<1000);
-  if(!s.boat)html+=button('voyage-buy',!s.license?'自分の船 · 免許取得後に購入（2,500 G）':s.location!=='harbor'?'自分の船 · 帰港して購入（2,500 G）':'自分の船を買う · 2,500 G',!s.license||s.location!=='harbor'||s.money<BOAT_PRICES[0]);
-  if(s.boatLevel<2)html+=button('voyage-upgrade',s.boatLevel===0?'豪華な船へ改装 · 購入後（3,500 G）':s.location!=='harbor'?'一獲丸を改装 · 帰港して相談（3,500 G）':'一獲丸を豪華に改装する · 3,500 G',s.boatLevel!==1||s.location!=='harbor'||s.money<BOAT_PRICES[1]);
-  html+='</div><p class="modal-desc">船長「免許と自分の船は、もっと釣りを楽しむためのものだ。同乗のままでも、最後の岩礁まで案内するよ。自分の船なら大物を狙いやすくなる。改装すると、さらにいい漁場へ行ける」</p><div class="choice-list">'+button('voyage-back',returnToMenu?'メニューへ戻る':'釣り場へ戻る');
+  if(!s.boat)html+=button('voyage-buy',!s.license?'自分の船 · 免許取得後に購入（18,000 G）':s.location!=='harbor'?'自分の船 · 帰港して購入（18,000 G）':'自分の船を買う · 18,000 G',!s.license||s.location!=='harbor'||s.money<BOAT_PRICES[0]);
+  if(s.boatLevel<2)html+=button('voyage-upgrade',s.boatLevel===0?'豪華な船へ改装 · 購入後（28,000 G）':s.location!=='harbor'?'一獲丸を改装 · 帰港して相談（28,000 G）':'一獲丸を豪華に改装する · 28,000 G',s.boatLevel!==1||s.location!=='harbor'||s.money<BOAT_PRICES[1]);
+  html+='</div><p class="modal-desc">船長「免許と自分の船は、もっと釣りを楽しむためのものだ。同乗のままでも、最後の岩礁まで案内するよ。自分の船なら大物を狙いやすくなる。改装船なら沖の潮目へ出て、そこでしか釣れないブリを狙える」</p><div class="choice-list">'+button('voyage-back',returnToMenu?'メニューへ戻る':'釣り場へ戻る');
   modal('船長と話す',html+'</div>',returnToMenu);
   $('voyage-back').onclick=back;
+  if($('voyage-bluewater'))$('voyage-bluewater').onclick=()=>{if(act('bluewater')){close();if(!s.readDialogueIds.includes('bluewaterIntro'))dialogue('bluewaterIntro');else toast('一獲丸で、沖の潮目へ。');}};
+  if($('voyage-reef'))$('voyage-reef').onclick=()=>{if(act('reef')){close();toast('金塊の噂が始まった岩礁へ戻った。');}};
   $('voyage-travel').onclick=()=>{const target=s.location==='sea'?'harbor':'sea';if(act(target)){close();toast(target==='sea'?'おじさんと一緒に、沖へ出航！':'港に戻った。おつかれさま。');}};
   if($('voyage-berth'))$('voyage-berth').onclick=()=>{if(act('berth'))close();};
   if($('voyage-shore'))$('voyage-shore').onclick=()=>{if(act('harbor'))close();};
   if($('voyage-license'))$('voyage-license').onclick=exam;
   if($('voyage-buy'))$('voyage-buy').onclick=()=>{if(act('boat')){effect('boat');menu();toast('あなたの船「一獲丸」を手に入れた！');}};
-  if($('voyage-upgrade'))$('voyage-upgrade').onclick=()=>{if(act('boatUpgrade')){effect('boat');menu();toast('一獲丸を改装した！ 大物の狙い場へ行きやすくなった。');}};
+  if($('voyage-upgrade'))$('voyage-upgrade').onclick=()=>{if(act('boatUpgrade')){effect('boat');menu();toast('一獲丸を改装した！ 専用漁場「沖の潮目」でブリを狙えるようになった。');}};
   if($('voyage-god'))$('voyage-god').onclick=trial;
  }
  function exam(){

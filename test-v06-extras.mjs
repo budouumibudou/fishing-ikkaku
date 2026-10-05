@@ -1,4 +1,4 @@
-import {BY_ID} from './test-v06-data.mjs?v=0.7.4-test1';
+import {BY_ID} from './test-v06-data.mjs?v=0.7.5-test1';
 const RANK_KEY='fishing-ikkaku-preview-v06-challenge-records';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function setupExtras({getState,modal,commit,toast}){
@@ -7,12 +7,14 @@ export function setupExtras({getState,modal,commit,toast}){
  modal('波止場の釣り仲間',`<p>釣果を見せて、話してみよう。会話だけなら釣果は減りません。</p><div class="choice-list"><button id="young-talk" class="small-btn">若い釣り人・悠太（${s.youngStage===2?'釣り仲間':s.youngStage?'顔見知り':'はじめまして'}）</button><button id="neighbor-talk" class="small-btn">青いエプロンの釣り人・澄子（${s.neighborStage===2?'釣り仲間':s.neighborStage?'顔見知り':'はじめまして'}）</button></div><p>澄子さんは波止場の常連。裏通りのおばちゃんとは別人です。</p>`);
  $('young-talk').onclick=()=>{
  let line;if(!s.youngStage){s.youngStage=1;line='悠太「沖でアジが釣れたら、生き餌に残してみて。アオリイカが抱きつくよ。釣れたら見せてね」';}
+ else if(s.discovered.includes('buri')&&!s.readDialogueIds.includes('yutaBlue')){s.readDialogueIds.push('yutaBlue');s.krillCount+=3;line='悠太「潮目でブリが釣れたんですね！ あの海図、みんなで書いたんです。次は一緒に狙いたいな」 オキアミを3個もらった。';}
  else if(s.discovered.includes('aori_squid')&&s.youngStage<2){s.youngStage=2;s.krillCount+=3;line='悠太「本当に釣れた！ 今度は一緒に大物を狙おう。これはお祝い」 オキアミを3個もらった。';}
  else line=s.youngStage===2?'悠太「次は何を狙う？ 売る分と、餌に残す分。考える時間も釣りだね」':'悠太「アジを釣った画面か、売却画面で生き餌に確保できるよ。イカを見せてくれるのを待ってる」';
  commit();say(line);
  };
  $('neighbor-talk').onclick=()=>{
  let line;if(!s.neighborStage){s.neighborStage=1;line='澄子「売るばかりじゃもったいない。家へ保管して食べると、次の3投は落ち着いて合わせられるよ。海ぶどうも見つけたら見せてね」';}
+ else if(s.discovered.includes('message_bottle')&&!s.readDialogueIds.includes('sumikoBlue')){s.readDialogueIds.push('sumikoBlue');s.fatCount+=3;line='澄子「小瓶の手紙、読んでくれたんだね。海図が戻ってよかったよ。釣れた日も釣れなかった日も、帰って話しておくれ」 豚の脂身を3個もらった。';}
  else if(s.discovered.includes('sea_grapes')&&s.neighborStage<2){s.neighborStage=2;s.fatCount+=3;line='澄子「海ぶどう、ちゃんと釣れたね！ この豚の脂身はおすそ分け。沖のタコに使ってごらん」 豚の脂身を3個もらった。';}
  else line=s.neighborStage===2?'澄子「タコは岩に張りつくから、少し待って離れたところを引くんだよ。帰ったら、また釣果を見せておくれ」':'澄子「家の保管箱は黒鯛にも荒らされない。大切な釣果は置いていきな」';
  commit();say(line);
