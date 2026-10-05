@@ -12,3 +12,10 @@ Source paths: preview-v06/assets/buri.png; preview-v06/assets/message_bottle.png
 Flat upload names: test-v06-buri.png; test-v06-message_bottle.png
 Buri prompt: single detailed 16-bit Japanese yellowtail sprite, whole horizontal fish facing left, silver belly, blue green back, yellow stripe and forked tail, transparent background, no text or scenery.
 Bottle prompt: single detailed 16-bit sea-green glass bottle with cork and twine, rolled nautical chart inside, transparent background, no text or scenery.
+
+【v076 新規画像】
+生成方式：組み込み画像生成ツール（imagegenスキル）。
+ファイル：test-v06-bluewater_scene.png / test-v06-deity_scene.png
+潮目の最終指示：海の潮がぶつかる開けた沖の風景。豪華な紺・金の船、船内の安全な甲板に救命胴衣を着た船長、おじさん、主人公。詳細なレトロドット絵。岩礁背景とは異なる外洋。文字・UIなし。釣り竿は残し、糸とウキはゲームで重ねるため画像から除く。
+チヌ神の指示：波を割って現れる巨大な古い黒鯛の神。銀黒の鱗、赤い目、堂々としたひれ、金色の光輪と潮の光、荘厳な青緑の海と光が差す空。怖い怪物ではなく、少し得意げな海の親分。詳細なレトロドット絵、文字・UIなし。
+制作途中の背景は配布しない。新しい背景とチヌ神の完成画像をゲーム内で使用。

@@ -1,4 +1,4 @@
-import {voyageAction,BOAT_PRICES,canVisitBerth,canSail,knowsRumor,canMeetDeity} from './test-v06-core.mjs?v=0.7.5-test1';
+import {voyageAction,BOAT_PRICES,canVisitBerth,canSail,knowsRumor,canMeetDeity} from './test-v06-core.mjs?v=0.7.6-test1';
 export const SEA_SPRITES={horse_mackerel:'test-v06-horse_mackerel.png',mackerel:'test-v06-mackerel.png',red_seabream:'test-v06-red_seabream.png',kue:'test-v06-kue.png'};
 export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,effect=()=>{}}){
  const $=id=>document.getElementById(id);
@@ -42,7 +42,7 @@ export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,e
   function paint(){const [q,answers]=questions[i];modal('船長の講習 · '+(i+1)+'/3',`<p class="modal-desc">船長「急がなくていい。合格したら講習費は1,000 Gだ」</p><h3>${q}</h3><div class="choice-list">${answers.map((a,n)=>button('exam-'+n,a)).join('')}</div>`);$('exam-1').onclick=()=>toast('船長「安全を優先しよう。もう一度、選んでごらん」');$('exam-0').onclick=()=>{if(++i<questions.length)paint();else if(act('license')){menu();toast('免許取得！ 船長「焦らない。それがいちばん大事」');}};}paint();
  }
  function trial(){
-  const s=getState();if(!canMeetDeity(s)){toast('沖で大物クエを釣ると、船長が岩礁へ案内してくれます。');return;}
+  const s=getState();if(!canMeetDeity(s)){toast(!s.breamTalked?'まず沖の黒鯛と話して、親分の居場所を聞こう。':'沖で大物クエを釣ると、船長が岩礁へ案内してくれます。');return;}
   if(s.deityPending){resumeBoss();return;}
   modal('金塊の噂が始まった岩礁',`<p class="modal-desc">船長「この潮筋だ。あのクエを上げたなら、ここでも竿を出せる」<br>おじさん「海の底に、誰かいるようだね」</p><button id="god-cast" class="fish-btn">岩礁に釣り糸を投げる</button><p class="modal-desc">最後の大物勝負。失敗しても竿・釣果・餌・所持金は減りません。船長の船と初心者の竿でも挑めます。</p>`);
   $('god-cast').onclick=()=>{s.deityPending=true;s.deityStage='waiting';s.deityPulls=0;commit();bossWait();};
@@ -58,7 +58,7 @@ export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,e
  }
  function bossWait(){
   cancelAnimationFrame(bossFrame);
-  modal('岩礁の大物 · ウキを見守る',`<div class="result"><p id="god-wait-text">波が止まった。ウキが、静かに沈んでいく……。</p><button id="god-hook" class="fish-btn" disabled>ウキを見守る…</button></div>`);
+  effect('deity');modal('岩礁の大物 · ウキを見守る',`<div class="result deity-scene deity-await"><img class="deity-hero" src="test-v06-deity_scene.png" alt="波の下で目を開く岩礁の主"><p class="deity-title">海の親分 · チヌ神</p><p id="god-wait-text">波が止まった。ウキが、静かに沈んでいく……。</p><button id="god-hook" class="fish-btn" disabled>ウキを見守る…</button></div>`);
   let start=null;
   const frame=now=>{if(!$('modal').open||!$('god-hook'))return;if(start===null)start=now;if(now-start>=1800){$('god-wait-text').textContent='ウキが沈んだ！ 船長「今だ。落ち着いて合わせろ！」';$('god-hook').disabled=false;$('god-hook').textContent='今！ 合わせる';effect('hook');return;}bossFrame=requestAnimationFrame(frame);};bossFrame=requestAnimationFrame(frame);
   $('god-hook').onclick=()=>{if($('god-hook').disabled)return;getState().deityStage='fight';commit();bossPull();};
@@ -66,7 +66,7 @@ export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,e
  function bossPull(){
   cancelAnimationFrame(bossFrame);const s=getState();if(s.deityPulls>=3){s.deityStage='landed';commit();landed();return;}
   const round=s.deityPulls+1;
-  modal('岩礁の大物 · '+round+'/3',`<div class="result"><h3>${['底から、動かない。','黒い影が、水面を走る。','船の下で、低い笑い声がする。'][round-1]}</h3><p>緑の帯でタップ。3回、落ち着いて引き上げよう。</p><div class="challenge-meter"><div class="boss-safe"></div><div class="boss-critical"></div><div id="god-needle"></div></div><button id="god-pull" class="fish-btn">竿を引く！</button><p>成功 ${s.deityPulls}/3 · 外しても成功した分は残ります。</p></div>`);
+  modal('岩礁の大物 · '+round+'/3',`<div class="result deity-scene"><img class="deity-hero" src="test-v06-deity_scene.png" alt="巨大なチヌ神との大物勝負"><h3>${['底から、動かない。','黒い影が、水面を走る。','船の下で、低い笑い声がする。'][round-1]}</h3><p>緑の帯でタップ。3回、落ち着いて引き上げよう。</p><div class="challenge-meter"><div class="boss-safe"></div><div class="boss-critical"></div><div id="god-needle"></div></div><button id="god-pull" class="fish-btn">竿を引く！</button><p>成功 ${s.deityPulls}/3 · 外しても成功した分は残ります。</p></div>`);
   let start=null,position=0,finished=false;const speed=s.settings.slow?.6:.85;
   const frame=now=>{if(finished||!$('modal').open||!$('god-needle'))return;if(start===null)start=now;position=(Math.sin((now-start)/1000*Math.PI*speed-Math.PI/2)+1)/2;$('god-needle').style.left=position*100+'%';bossFrame=requestAnimationFrame(frame);};bossFrame=requestAnimationFrame(frame);
   $('god-pull').onclick=()=>{if(finished)return;finished=true;cancelAnimationFrame(bossFrame);
@@ -75,15 +75,15 @@ export function setupVoyage({getState,modal,dialogue,commit,close,ending,toast,e
   };
  }
  function landed(){
-  cancelAnimationFrame(bossFrame);
-  modal('釣り上げた！ · チヌ神',`<div class="result"><img src="test-v06-black-bream-fixed.png" alt="釣り上げたチヌ神"><h3>岩礁の主が、船べりに姿を現した！</h3><p>船長「竿はそのまま。引き寄せすぎるな」<br>あなた「釣れた……のか？」<br>黒い魚が、こちらを見て笑った。</p><button id="god-speak" class="fish-btn">釣った魚に、話しかける</button></div>`);
+  effect('deity');cancelAnimationFrame(bossFrame);
+  modal('釣り上げた！ · チヌ神',`<div class="result deity-scene"><img class="deity-hero" src="test-v06-deity_scene.png" alt="波を割って現れた巨大なチヌ神"><p class="deity-title">海の親分 · チヌ神 降臨</p><h3>岩礁の主が、船べりに姿を現した！</h3><p>船長「竿はそのまま。引き寄せすぎるな」<br>あなた「釣れた……のか？」<br>黒い魚が、こちらを見て笑った。</p><button id="god-speak" class="fish-btn">釣った魚に、話しかける</button></div>`);
   $('god-speak').onclick=()=>{getState().deityStage='reveal';commit();reveal();};
  }
  function reveal(){
   dialogue([['あなた','釣り上げました！'],['チヌ神','おう。わしも、ようやく釣り上げた。'],['あなた','……誰を？'],['チヌ神','お前さんたちを。この岩礁までな。金塊は、よく効く餌じゃ。'],['隣のおじさん','釣り人の方が、食いついとったのか。'],['船長','だが、この魚を上げた腕は本物だ。'],['チヌ神','わしはチヌさま。この海の黒鯛たちの親分じゃ。聞きたいことがある顔をしておるな。']],()=>{getState().deityStage='question';commit();askHistory();},true);
  }
  function askHistory(){
-  modal('釣り人を釣った、チヌ神',`<div class="result"><img src="test-v06-black-bream-fixed.png" alt="チヌ神"><h3>あなた「金塊も、変な釣果も、あなたの仕業ですか？」</h3><button id="god-history" class="fish-btn">金塊と、変な釣果のわけを尋ねる</button><p>物語の結末とスタッフロールへ進みます。その後も同じ記録で釣りを続けられます。釣果と所持金は残ります。</p></div>`);
+  modal('釣り人を釣った、チヌ神',`<div class="result deity-scene"><img class="deity-hero" src="test-v06-deity_scene.png" alt="海の親分チヌ神"><h3>あなた「金塊も、変な釣果も、あなたの仕業ですか？」</h3><button id="god-history" class="fish-btn">金塊と、変な釣果のわけを尋ねる</button><p>物語の結末とスタッフロールへ進みます。その後も同じ記録で釣りを続けられます。釣果と所持金は残ります。</p></div>`);
   $('god-history').onclick=()=>{getState().deityStage='history';commit();history();};
  }
  function history(){

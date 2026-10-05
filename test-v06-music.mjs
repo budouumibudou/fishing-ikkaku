@@ -27,7 +27,7 @@ export class Soundtrack{
    this.step++;this.next+=d;
   }
  }
- effect(name){if(!this.enabled||this.ctx.state!=='running')return;const phrases={boat:[60,64,67,72,67,72,76,79],cast:[76,69,60],hook:[79,86],bite:[88,88],catch:[72,76,79,84],gold:[72,76,79,84,88,91],escape:[74,70,65],black:[45,44,39],coin:[84,91,88],page:[76]};
+ effect(name){if(!this.enabled||this.ctx.state!=='running')return;const phrases={deity:[36,43,48,55,60,67,72,79],boat:[60,64,67,72,67,72,76,79],cast:[76,69,60],hook:[79,86],bite:[88,88],catch:[72,76,79,84],gold:[72,76,79,84,88,91],escape:[74,70,65],black:[45,44,39],coin:[84,91,88],page:[76]};
   const ns=phrases[name]||phrases.page;ns.forEach((n,i)=>this.note(n,this.ctx.currentTime+i*.075,name==='page'?.055:.24,name==='page'?.018:.065,this.ctx.destination,'triangle'));
  }
  mute(){this.enabled=false;for(const o of this.voices){try{o.stop();}catch{}}this.next=this.ctx.currentTime+.03;}

@@ -130,3 +130,17 @@ dialog[open]{display:flex;flex-direction:column;overflow:hidden;max-height:88dvh
 
 /* Final fishing contest: same readable timing language as ordinary fishing. */
 .boss-safe{position:absolute;left:31%;width:38%;height:100%;background:#407d67}.boss-critical{position:absolute;left:45%;width:10%;height:100%;background:#f4d67b}#god-needle{position:absolute;top:0;bottom:0;width:4px;background:white;transform:translateX(-2px)}
+
+/* v076 catch feedback and climactic boss */
+.result .catch-benefit{background:#163f50;color:#fff0ba;border:1px solid #d6bc72;border-radius:8px;padding:12px;margin:12px 0 20px;font-weight:700}
+.result .deity-hero{width:100%;height:auto;max-height:280px;object-fit:cover;border:2px solid #dfbf6b;border-radius:10px;box-shadow:0 0 30px #ddb65a44;animation:deity-rise .8s ease-out}
+.result .deity-title{color:#ffe599;letter-spacing:.14em;font-weight:900;font-size:20px;margin-top:16px}
+@keyframes deity-rise{from{opacity:.25;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.result .small-btn{margin-top:12px;max-width:100%}
+.friend-event{background:linear-gradient(#173e4e,#082f42);border:1px solid #74959b;border-radius:12px;padding:18px;line-height:1.9}.friend-event img{display:block;width:150px;height:110px;object-fit:contain;margin:0 auto 14px;image-rendering:pixelated}.friend-event h3{color:var(--gold);margin:0 0 12px}.friend-event p{margin-bottom:14px}.friend-event small{color:var(--muted)}
+@media(max-height:550px) and (orientation:landscape){.result .deity-hero{max-height:150px}}
+
+.at-bluewater .sea-uncle{display:none!important}
+.deity-await .deity-hero{filter:brightness(.25) saturate(.6);opacity:.8}
+
+.at-sea.at-bluewater .fishing-line{display:block!important}.at-bluewater #rod-path{display:none}.at-bluewater .bobber{left:87.5%;top:63.5%}.at-bluewater .ripple{left:87%;top:70%}

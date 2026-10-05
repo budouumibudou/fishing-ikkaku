@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id);
 $('maintenance-reload').onclick=()=>{const url=new URL(location.href);url.searchParams.set('update',Date.now().toString());location.replace(url);};
 try{
- await import('./test-v06-game.mjs?v=0.7.5-test1');
+ await import('./test-v06-game.mjs?v=0.7.6-test1');
  $('maintenance-screen').hidden=true;
  document.documentElement.classList.add('game-ready');
 }catch(error){

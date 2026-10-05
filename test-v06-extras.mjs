@@ -1,24 +1,44 @@
-import {BY_ID} from './test-v06-data.mjs?v=0.7.5-test1';
+import {keepAji} from './test-v06-core.mjs?v=0.7.6-test1';
+import {BY_ID} from './test-v06-data.mjs?v=0.7.6-test1';
 const RANK_KEY='fishing-ikkaku-preview-v06-challenge-records';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function setupExtras({getState,modal,commit,toast}){
  const $=id=>document.getElementById(id);
  function people(){const s=getState();if(s.location!=='harbor'){toast('釣り仲間は波止場で待っています。');return;}if(!s.berthGoldReady){modal('まだ知らない釣り人',`<p class="modal-desc">今はおじさんと釣り、船着場の噂を追おう。沖へ行けるようになった頃、波止場のほかの釣り人にも声をかけてみよう。</p>`);return;}
- modal('波止場の釣り仲間',`<p>釣果を見せて、話してみよう。会話だけなら釣果は減りません。</p><div class="choice-list"><button id="young-talk" class="small-btn">若い釣り人・悠太（${s.youngStage===2?'釣り仲間':s.youngStage?'顔見知り':'はじめまして'}）</button><button id="neighbor-talk" class="small-btn">青いエプロンの釣り人・澄子（${s.neighborStage===2?'釣り仲間':s.neighborStage?'顔見知り':'はじめまして'}）</button></div><p>澄子さんは波止場の常連。裏通りのおばちゃんとは別人です。</p>`);
- $('young-talk').onclick=()=>{
- let line;if(!s.youngStage){s.youngStage=1;line='悠太「沖でアジが釣れたら、生き餌に残してみて。アオリイカが抱きつくよ。釣れたら見せてね」';}
- else if(s.discovered.includes('buri')&&!s.readDialogueIds.includes('yutaBlue')){s.readDialogueIds.push('yutaBlue');s.krillCount+=3;line='悠太「潮目でブリが釣れたんですね！ あの海図、みんなで書いたんです。次は一緒に狙いたいな」 オキアミを3個もらった。';}
- else if(s.discovered.includes('aori_squid')&&s.youngStage<2){s.youngStage=2;s.krillCount+=3;line='悠太「本当に釣れた！ 今度は一緒に大物を狙おう。これはお祝い」 オキアミを3個もらった。';}
- else line=s.youngStage===2?'悠太「次は何を狙う？ 売る分と、餌に残す分。考える時間も釣りだね」':'悠太「アジを釣った画面か、売却画面で生き餌に確保できるよ。イカを見せてくれるのを待ってる」';
- commit();say(line);
- };
- $('neighbor-talk').onclick=()=>{
- let line;if(!s.neighborStage){s.neighborStage=1;line='澄子「売るばかりじゃもったいない。家へ保管して食べると、次の3投は落ち着いて合わせられるよ。海ぶどうも見つけたら見せてね」';}
- else if(s.discovered.includes('message_bottle')&&!s.readDialogueIds.includes('sumikoBlue')){s.readDialogueIds.push('sumikoBlue');s.fatCount+=3;line='澄子「小瓶の手紙、読んでくれたんだね。海図が戻ってよかったよ。釣れた日も釣れなかった日も、帰って話しておくれ」 豚の脂身を3個もらった。';}
- else if(s.discovered.includes('sea_grapes')&&s.neighborStage<2){s.neighborStage=2;s.fatCount+=3;line='澄子「海ぶどう、ちゃんと釣れたね！ この豚の脂身はおすそ分け。沖のタコに使ってごらん」 豚の脂身を3個もらった。';}
- else line=s.neighborStage===2?'澄子「タコは岩に張りつくから、少し待って離れたところを引くんだよ。帰ったら、また釣果を見せておくれ」':'澄子「家の保管箱は黒鯛にも荒らされない。大切な釣果は置いていきな」';
- commit();say(line);
- };
+ modal('波止場の釣り仲間',`<p>悠太はイカ釣りの相棒、澄子は釣果を囲む食卓の仲間。ふたりの話にも、続きがあります。</p><div class="choice-list"><button id="young-talk" class="small-btn">悠太 · ${s.youngStage===2?'沖の釣り仲間':s.youngStage?'イカ釣りの約束':'桟橋でほどけた糸'}</button><button id="neighbor-talk" class="small-btn">澄子 · ${s.neighborStage===2?'桟橋の食卓':s.neighborStage?'海ぶどうを見せる約束':'帰りを待つおすそ分け'}</button></div>`);
+ $('young-talk').onclick=young;
+ $('neighbor-talk').onclick=neighbor;
+ }
+ function event(title,art,lines,onDone){let n=0;function paint(){modal(title,`<div class="friend-event"><img src="${art}" alt="${escape(title)}"><small>波止場 · ${n+1}/${lines.length}</small><h3>${escape(lines[n][0])}</h3><p>${escape(lines[n][1])}</p></div><button id="friend-next" class="small-btn gold">${n+1===lines.length?'それから……':'話を聞く'}</button>`);$('friend-next').onclick=()=>{if(++n<lines.length)paint();else onDone();};}paint();}
+ function young(){const s=getState();
+ if(!s.youngStage){event('悠太 · 桟橋でほどけた糸','test-v06-horse_mackerel.png',[
+ ['桟橋の端で','若い釣り人が絡んだ糸と格闘している。こちらを見て、困ったように笑った。'],['悠太','魚より先に、自分を釣っちゃいました。……ちょっと押さえてもらえますか。'],['あなた','大物ですね。逃がしておきましょう。'],['悠太','助かった！ 僕は悠太。お返しにイカ釣りを一緒に考えませんか。アジを泳がせると、イカが抱きつくんです。'],['悠太','餌メニューでアジを選べば、そのまま使えます。最初の一投は僕が食い込むタイミングを教えます。釣れたら、ここで見せ合いましょう。']
+ ],()=>{modal('悠太とイカ釣りの約束',`<p>手元のアジ：${s.inventory.horse_mackerel||0}匹。悠太の助言がある最初の生き餌釣りは、イカが確実に抱きつき、引き上げても逃しません。最初の1匹で感覚をつかもう。</p><button id="friend-accept" class="small-btn gold">${s.inventory.horse_mackerel>0?'アジ1匹を確保して、イカを狙う':'まず沖でアジを釣ってくる'}</button>`);$('friend-accept').onclick=()=>{if(s.inventory.horse_mackerel>0){keepAji(s);s.settings.bait='live_aji';}s.youngStage=1;s.squidAttempts=Math.max(s.squidAttempts,2);commit();people();};});return;}
+ if(s.discovered.includes('aori_squid')&&s.youngStage<2){event('悠太 · はじめてのイカを見せに','test-v06-aori_squid.png',[
+ ['悠太','あの約束、覚えてたんですね。うわ、きれいなイカだ！'],['あなた','待つところで、少し焦りました。魚とは違いますね。'],['悠太','僕も最初はすぐ引いちゃって。今度は僕が釣れたものも見せます。上手い人と比べてばかりじゃ、楽しくないですもんね。'],['ふたりで','桟橋に並んで、手振りでイカの大きさを競う。少しずつ大きくなり、最後には船ほどになった。'],['悠太','次は大物です。潮の筋を一緒に調べておきます。これはアジを集めるオキアミ。僕の分まで釣ってこなくていいから、また話しましょう。']
+ ],()=>{s.youngStage=2;s.krillCount+=3;commit();say('悠太と釣り仲間になった。オキアミ3個を受け取った。');});return;}
+ if(s.discovered.includes('buri')&&!s.readDialogueIds.includes('yutaBlue')){event('悠太 · 同じ潮を追いかけて','test-v06-buri.png',[
+ ['悠太','潮目のブリ、本当に走ってたんですね！ あの海図の矢印、僕が書いたんです。'],['あなた','どうして、あの場所が分かったんですか。'],['悠太','澄子さんが海鳥の集まる場所を覚えていて。僕が潮の向きを書き足して、船長が帰れる道を直してくれました。'],['悠太','最初に糸をほどいてくれた日から、ひとりで上手くなるより、釣れた話を持ち寄る方が楽しいんです。'],['悠太','次は僕も釣ってみせます。小瓶の海図を見つけたら、澄子さんにも知らせてくださいね。']
+ ],()=>{s.readDialogueIds.push('yutaBlue');s.krillCount+=3;commit();say('悠太と潮目の釣果を分け合った。オキアミ3個を受け取った。');});return;}
+ say(s.youngStage===2?'悠太「イカの次は、沖の潮目のブリ。僕らの海図は船長に渡しておきます。釣れた話だけじゃなく、逃がした話も聞かせてください」':'悠太「約束のイカ、待ってます。餌メニューでアジを選んで、抱きついてから少し待つ。一緒に糸をほどいた時みたいに、焦らずに」');
+ }
+ function neighbor(){const s=getState();
+ if(!s.neighborStage){event('澄子 · 帰りを待つおすそ分け','test-v06-sea_grapes.png',[
+ ['波止場へ帰ると','青いエプロンの釣り人が、空の皿をひとつ増やした。'],['澄子','おかえり。売る魚と、晩ごはんになる魚。どちらもいい釣果だね。'],['あなた','今日は妙なものばかり釣れました。'],['澄子','釣れなくても、帰って話す人がいればいいんだよ。私は澄子。裏通りの大声のおばちゃんとは別人だからね。'],['澄子','海ぶどうを見つけたら持っておいで。桟橋で味見しよう。売ってしまった時は、話だけでも聞かせておくれ。']
+ ],()=>{s.neighborStage=1;commit();people();});return;}
+ if(s.discovered.includes('sea_grapes')&&s.neighborStage<2){event('澄子 · 桟橋の小さな食卓','test-v06-sea_grapes.png',[
+ ['澄子','海ぶどうを見つけたんだね。こんな小さな粒が、海の流れに乗ってくるんだ。'],['あなた','高い魚を釣るのとは、違う楽しさがあります。'],['澄子','そうそう。悠太もいつも大物の話だけど、帰るとこの皿を空にするよ。'],['桟橋の食卓','潮風の中で、皿と湯飲みが並ぶ。金塊の噂で騒いだ港が、少しだけ静かになる。']
+ ],()=>mealChoice());return;}
+ if(s.discovered.includes('message_bottle')&&!s.readDialogueIds.includes('sumikoBlue')){event('澄子 · 戻ってきた海図','test-v06-message_bottle.png',[
+ ['澄子','小瓶、見つけてくれたんだね。船長が落とした時は、悠太とずいぶん探したよ。'],['あなた','手紙まで入っていました。僕に宛てて？'],['澄子','あの桟橋で、今度は誰を待とうかって話したんだ。おじさんが、あなたの席は空けておくって。'],['澄子','金を手にしたら、もう来ないかもと思ってた。でも戻ってきたね。釣りは、帰る場所があると長く続くんだよ。'],['あなた','次は釣れなくても、また来ます。'],['澄子','もちろん。皿を減らさずに待ってるよ。']
+ ],()=>{s.readDialogueIds.push('sumikoBlue');s.fatCount+=3;commit();say('澄子と、次の食卓を約束した。豚の脂身3個を受け取った。');});return;}
+ if(s.neighborStage===2){mealChoice();return;}
+ say('澄子「海ぶどうが見つかったら、売ったあとでも話を聞かせておくれ。持って帰れたら、次の釣りの前に一緒に食べよう」');
+ }
+ function mealChoice(){const s=getState(),stock=s.inventory.sea_grapes>0?'inventory':s.homeInventory.sea_grapes>0?'homeInventory':null;
+ modal('澄子と、桟橋でひと休み',`<div class="friend-event"><img src="test-v06-sea_grapes.png" alt="桟橋の食卓"><h3>澄子「ひと皿、どうだい？」</h3><p>${stock?'海ぶどうを1個使って一緒に食べると、次の3投の成功帯が広がります。':'海ぶどうはもう手元になくても、釣れた話だけで十分です。次に持ち帰ったら一緒に食べられます。'}</p></div>${stock?'<button id="friend-meal" class="small-btn gold">海ぶどう1個で一緒に食べる</button>':''}<button id="friend-no-meal" class="small-btn">食べずに、釣りの話をする</button>`);
+ const finish=ate=>{if(ate){s[stock].sea_grapes--;s.mealCasts=3;}if(s.neighborStage<2){s.neighborStage=2;s.fatCount+=3;}commit();say(ate?'海ぶどうの粒がぱちんと弾ける。澄子「落ち着いて行っておいで。また帰りを待ってるよ」 次の3投の成功帯が広がった。':'澄子「魚がなくても話はあるね。またおいで」 桟橋の食卓に、あなたの席ができた。');};
+ if($('friend-meal'))$('friend-meal').onclick=()=>finish(true);$('friend-no-meal').onclick=()=>finish(false);
  }
  function say(line){modal('釣り仲間との会話',`<p class="modal-desc">${escape(line)}</p><button id="people-back" class="small-btn gold">仲間のところへ</button>`);$('people-back').onclick=people;}
  function records(){try{const a=JSON.parse(localStorage.getItem(RANK_KEY)||'[]');return Array.isArray(a)?a.filter(x=>x&&Number.isSafeInteger(x.score)&&x.score>=0&&x.score<=10000).slice(0,10):[];}catch{return [];}}
