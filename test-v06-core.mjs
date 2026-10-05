@@ -1,7 +1,7 @@
-import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.7.3-test1';
+import {ITEMS,BY_ID} from './test-v06-data.mjs?v=0.7.4-test1';
 export const STORAGE_KEY='fishing-ikkaku-v1';
-export function fresh(){return {schemaVersion:2,storyVersion:3,voyageVersion:1,actOneVersion:1,actOneSeen:false,actOnePending:false,goldBridgePending:false,breamRepelCount:0,deityPending:false,creditsStarted:false,portWins:0,krillCount:0,sageCount:0,sagePity:0,fatCount:0,octopusAttempts:0,mealCasts:0,youngStage:0,neighborStage:0,location:'harbor',seaCasts:0,berthCasts:0,berthGoldReady:false,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,trueEndingSeen:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
-const counts=['breamRepelCount','portWins','krillCount','sageCount','sagePity','fatCount','octopusAttempts','mealCasts','youngStage','neighborStage','money','baitCount','liveBaitCount','squidAttempts','rodLevel','boatLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','rodBreakCount','starStreak','maxStarStreak','seaCasts','berthCasts'];
+export function fresh(){return {schemaVersion:2,storyVersion:3,voyageVersion:1,actOneVersion:1,deityVersion:1,deityStage:"",deityPulls:0,actOneSeen:false,actOnePending:false,goldBridgePending:false,breamRepelCount:0,deityPending:false,creditsStarted:false,portWins:0,krillCount:0,sageCount:0,sagePity:0,fatCount:0,octopusAttempts:0,mealCasts:0,youngStage:0,neighborStage:0,location:'harbor',seaCasts:0,berthCasts:0,berthGoldReady:false,seaIntroRead:false,license:false,boat:false,boatLevel:0,seaEnding:false,trueEndingSeen:false,money:50,baitCount:0,liveBaitCount:0,squidAttempts:0,rodLevel:0,inventory:{},homeInventory:{},discovered:[],catchCounts:{},castCount:0,friendStage:0,readDialogueIds:[],pendingDialogueIds:[],goldPityCount:0,goldRecoveryMode:false,blackBreamCooldown:0,criticalCount:0,rodBreakCount:0,pendingCast:null,pendingBlack:null,portCleared:false,cleared:false,endingPending:false,settings:{sound:false,slow:false,motion:true,bait:'base'},starStreak:0,maxStarStreak:0};}
+const counts=['deityPulls','breamRepelCount','portWins','krillCount','sageCount','sagePity','fatCount','octopusAttempts','mealCasts','youngStage','neighborStage','money','baitCount','liveBaitCount','squidAttempts','rodLevel','boatLevel','castCount','friendStage','goldPityCount','blackBreamCooldown','criticalCount','rodBreakCount','starStreak','maxStarStreak','seaCasts','berthCasts'];
 export function hydrate(raw){
  if(!raw||typeof raw!=='object'||![1,2].includes(raw.schemaVersion))throw Error('このセーブ形式は読み込めません。元のデータは残しています。');
  const s=fresh();
@@ -37,6 +37,9 @@ export function hydrate(raw){
   s.actOnePending=false;
  }
  if(s.seaEnding||s.trueEndingSeen){s.actOneSeen=true;s.actOnePending=false;s.goldBridgePending=false;}
+ s.deityPulls=Math.min(3,s.deityPulls);s.deityStage=['waiting','fight','landed','reveal','question','history'].includes(raw.deityStage)?raw.deityStage:'';
+ if(raw.deityPending&&!raw.deityVersion)s.deityStage='history';
+ if(s.seaEnding||s.trueEndingSeen){s.deityPending=false;s.deityStage='';s.deityPulls=0;}
  s.pendingDialogueIds=s.pendingDialogueIds.filter(id=>id!=='recovery');
  s.portWins=Math.max(s.portWins,s.portCleared?1:0);s.mealCasts=Math.min(3,s.mealCasts);s.youngStage=Math.min(2,s.youngStage);s.neighborStage=Math.min(2,s.neighborStage);
  s.location=raw.location==='sea'&&canSail(s)?'sea':raw.location==='berth'&&canVisitBerth(s)?'berth':'harbor';return s;

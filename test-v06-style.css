@@ -105,7 +105,7 @@ dialog{max-height:88dvh;overscroll-behavior:contain} .title-screen{padding-botto
 body.reduce-motion .true-credits-window{overflow:auto;mask-image:none;-webkit-mask-image:none}body.reduce-motion .true-credits-track{position:relative;top:auto;animation:none!important}
 
 .challenge-meter{position:relative;height:42px;background:#071f2d;border:2px solid #8baeb5;margin:24px 0;overflow:hidden}.challenge-safe{position:absolute;left:28%;width:44%;height:100%;background:#407d67}.challenge-critical{position:absolute;left:45%;width:10%;height:100%;background:#f4d67b}#challenge-needle{position:absolute;top:0;bottom:0;width:4px;background:#fff;transform:translateX(-2px)}#record-name{display:block;width:100%;padding:12px;font:inherit;margin:12px 0}
-/* v0.7.3: visible feedback, compact navigation, safe on-deck companion */
+/* v0.7.4: visible feedback, compact navigation, safe on-deck companion */
 [hidden]{display:none!important}
 dialog[open]{display:flex;flex-direction:column;overflow:hidden;max-height:88dvh}
 .modal-head{flex-shrink:0}
@@ -127,3 +127,6 @@ dialog[open]{display:flex;flex-direction:column;overflow:hidden;max-height:88dvh
 @media(orientation:landscape) and (max-height:600px){.ending-story{top:25%;bottom:4%;font-size:14px}.ending-story p{margin-bottom:12px}dialog[open]{max-height:calc(100dvh - 24px)}}
 /* Keep optional conversations and other anglers reachable in portrait too. */
 .menu-open{display:block;width:100%;margin-top:12px}
+
+/* Final fishing contest: same readable timing language as ordinary fishing. */
+.boss-safe{position:absolute;left:31%;width:38%;height:100%;background:#407d67}.boss-critical{position:absolute;left:45%;width:10%;height:100%;background:#f4d67b}#god-needle{position:absolute;top:0;bottom:0;width:4px;background:white;transform:translateX(-2px)}
